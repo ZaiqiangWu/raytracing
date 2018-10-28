@@ -29,9 +29,9 @@ public:
     vector3 operator-(const vector3& v2)
     {
         vector3 res;
-        res.x=this->x+v2.x;
-        res.y=this->y+v2.y;
-        res.z=this->z+v2.z;
+        res.x=this->x-v2.x;
+        res.y=this->y-v2.y;
+        res.z=this->z-v2.z;
         return res;
     }
     scalar_t dot(const vector3& v2)
