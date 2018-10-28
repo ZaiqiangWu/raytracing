@@ -12,7 +12,7 @@ int main(int argc, char** argv )
         printf("usage: DisplayImage.out <Image_Path>\n");
         return -1;
     }*/
-
+/*
     Mat image(Size(320,240),CV_32FC1);
     image.at<Vec3d>(0,0)[1]=1;
     int n1=image.rows;
@@ -27,7 +27,14 @@ int main(int argc, char** argv )
             data[i]=1;
 
         }
-    }
+    }*/
+    sphere<float> sphere0;
+    sphere0.center=vector3<float>(0,0,-2);
+    sphere0.radius=0.5;
+    Light<float> light(vector3<float>(0,0,-1));
+    Camera<float> cam(vector3<float>(0,0,2),vector3<float>(0,0,-1),vector3<float>(1,0,0),70*3.14/180.0,1.0);
+    Scence<float> scence(sphere0,cam,light);
+    cv::Mat image=scence.render();
     namedWindow("Display Image", WINDOW_AUTOSIZE );
     imshow("Display Image", image);
 
