@@ -94,7 +94,7 @@ public:
     }
     vector3<scalar_t> getPoint(scalar_t t)
     {
-        return origin+t*direction;
+        return origin+direction*t;
     }
 };
 
@@ -105,7 +105,7 @@ public:
     scalar_t t;
     vector3<scalar_t> normal;
     vector3<scalar_t> position;
-    IntersectionResult(scalar_t t,vector3<scalar_t> normal,vector3<scalar_t> position)
+    IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0))
     {
         this->t=t;
         this->normal=normal;
@@ -146,7 +146,7 @@ public:
         scalar_t dis2c=sqrt(dis.length()*dis.length()-projection*projection);
         if(dis2c<radius)
         {
-            rec.t=-d.dot(e-center)-sqrt(d.dot(e-center).squareLength()-d.dot(d)*((e-center).squareLength()-radius*radius));
+            rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
             rec.t=rec.t/d.squareLength();
             Ray<scalar_t> ray(e,d);
             rec.position=ray.getPoint(rec.t);
@@ -168,21 +168,21 @@ public:
     vector3<scalar_t> up;
     scalar_t FOV;
     scalar_t f;
-    Camera(vector3<scalar_t> postion,vector3<scalar_t> forward,vector3<scalar_t> right,scalar_t FOV,scalar_t f)
+    Camera(vector3<scalar_t> postion=vector3<scalar_t>(0,0,0),vector3<scalar_t> forward=vector3<scalar_t>(0,0,-1),vector3<scalar_t> right=vector3<scalar_t>(0,0,0),scalar_t FOV=1,scalar_t f=1)
     {
         this->position=postion;
         this->forward=forward;
         this->right=right;
         this->FOV=FOV;
         this->f=f;
-        this->up=this->right.cross(this->forward)
+        this->up=this->right.cross(this->forward);
     }
     Ray<scalar_t> generateRay(int u,int v,const int size)
     {
-        vector3<scalar_t> center=position+f*forward.normalize();
+        vector3<scalar_t> center=position+forward.normalize()*f;
         scalar_t pixelSize=f*tan(FOV/2)*2/(scalar_t)size;
-        vector3<scalar_t> origin=center-0.5*pixelSize*size*this->right+0.5*pixelSize*size*this->up;
-        vector3<scalar_t> location=origin-(0.5+u)*pixelSize*this->up+(0.5+v)*pixelSize;
+        vector3<scalar_t> origin=center-this->right*0.5*pixelSize*size+this->up*0.5*pixelSize*size;
+        vector3<scalar_t> location=origin-this->up*(0.5+u)*pixelSize+(0.5+v)*pixelSize;
         Ray<scalar_t> ray(position,(location-position).normalize());
         return ray;
     }
@@ -193,7 +193,7 @@ class Light
 {
 public:
     vector3<scalar_t> direction;
-    Light(vector3<scalar_t> d)
+    Light(vector3<scalar_t> d=vector3<scalar_t>(0,0,0))
     {
         this->direction=d.normalize();
     }
@@ -224,10 +224,11 @@ public:
             {
                 Ray<scalar_t> ray=camera.generateRay(u,v,size);
                 IntersectionResult<scalar_t> result;
-                bool ishit=sph.hit(ray.origin,ray.direction,0,100,result);
+                bool ishit=sphere0.hit(ray.origin,ray.direction,0,100,result);
+                data[v]=1;
                 if(ishit)
                 {
-                    result.normal.dot(light.direction.normalize());
+                    data[v]=result.normal.dot(light.direction.normalize());
                 }
             }
         }
