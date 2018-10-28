@@ -6,6 +6,7 @@
 #define DISPLAYIMAGE_RAYTRACING_H
 
 #include <math.h>
+#include <opencv2/opencv.hpp>
 template <typename scalar_t>
 class vector3
 {
@@ -135,8 +136,8 @@ public:
     }
 
     bool hit(vector3<scalar_t> e,
-            vector3<scalar_t> d,s
-            calar_t t0,
+            vector3<scalar_t> d,
+            scalar_t t0,
             scalar_t t1,
             IntersectionResult<scalar_t>& rec)
     {
@@ -163,5 +164,77 @@ class Camera
 public:
     vector3<scalar_t> position;
     vector3<scalar_t> forward;
+    vector3<scalar_t> right;
+    vector3<scalar_t> up;
+    scalar_t FOV;
+    scalar_t f;
+    Camera(vector3<scalar_t> postion,vector3<scalar_t> forward,vector3<scalar_t> right,scalar_t FOV,scalar_t f)
+    {
+        this->position=postion;
+        this->forward=forward;
+        this->right=right;
+        this->FOV=FOV;
+        this->f=f;
+        this->up=this->right.cross(this->forward)
+    }
+    Ray<scalar_t> generateRay(int u,int v,const int size)
+    {
+        vector3<scalar_t> center=position+f*forward.normalize();
+        scalar_t pixelSize=f*tan(FOV/2)*2/(scalar_t)size;
+        vector3<scalar_t> origin=center-0.5*pixelSize*size*this->right+0.5*pixelSize*size*this->up;
+        vector3<scalar_t> location=origin-(0.5+u)*pixelSize*this->up+(0.5+v)*pixelSize;
+        Ray<scalar_t> ray(position,(location-position).normalize());
+        return ray;
+    }
 };
+
+template <typename scalar_t>
+class Light
+{
+public:
+    vector3<scalar_t> direction;
+    Light(vector3<scalar_t> d)
+    {
+        this->direction=d.normalize();
+    }
+};
+
+template <typename scalar_t>
+class Scence
+{
+public:
+    sphere<scalar_t> sphere0;
+    Camera<scalar_t> camera;
+    Light<scalar_t> light;
+    int size;
+    Scence(sphere<scalar_t> sph,Camera<scalar_t> cam,Light<scalar_t> light)
+    {
+        this->sphere0=sph;
+        this->camera=cam;
+        this->light=light;
+        size=256;
+    }
+    cv::Mat render()
+    {
+        cv::Mat img(cv::Size(size,size),CV_32FC1);
+        for(int u=0;u<size;u++)
+        {
+            float* data=img.ptr<float>(u);
+            for(int v=0;v<size;v++)
+            {
+                Ray<scalar_t> ray=camera.generateRay(u,v,size);
+                IntersectionResult<scalar_t> result;
+                bool ishit=sph.hit(ray.origin,ray.direction,0,100,result);
+                if(ishit)
+                {
+                    result.normal.dot(light.direction.normalize());
+                }
+            }
+        }
+        return img;
+    }
+
+
+};
+
 #endif //DISPLAYIMAGE_RAYTRACING_H
