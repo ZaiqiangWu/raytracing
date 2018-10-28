@@ -12,6 +12,8 @@ int main(int argc, char** argv )
         printf("usage: DisplayImage.out <Image_Path>\n");
         return -1;
     }*/
+    vector3 v1;
+    vector3 v2;
 
     Mat image(Size(320,240),CV_32FC3);
     image.at<Vec3d>(0,0)[1]=1;
