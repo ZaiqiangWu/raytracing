@@ -7,6 +7,11 @@
 
 #include <math.h>
 #include <opencv2/opencv.hpp>
+#define min(a,b)  (((a)<(b))?(a):(b))
+#define max(a,b)  (((a)>(b))?(a):(b))
+#include <iostream>
+
+using namespace std;
 template <typename scalar_t>
 class vector3
 {
@@ -117,34 +122,45 @@ template <typename scalar_t>
 class surface
 {
 public:
+    //vector3<scalar_t> center;
+    //scalar_t radius;
     virtual bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)=0;
-    virtual box<scalar_t> bounding_box()=0;
+    //virtual box<scalar_t> bounding_box()=0;
+    virtual ~surface()
+    {
+        ;
+    }
 };
 
 template <typename scalar_t>
 class sphere:public surface<scalar_t>
 {
 public:
-    vector3<scalar_t> center;
-    scalar_t radius;
-    box<scalar_t> bounding_box()
+    /*box<scalar_t> bounding_box()
     {
         vector3<scalar_t> min(center.x-radius,center.y-radius,center.z-radius);
         vector3<scalar_t> max(center.x+radius,center.y+radius,center.z+radius);
         box<scalar_t> bounding(min,max);
         return bounding;
+    }*/
+    vector3<scalar_t> center;
+    scalar_t radius;
+    sphere(vector3<scalar_t> central,scalar_t radius)
+    {
+        this->center=central;
+        this->radius=radius;
     }
 
     bool hit(vector3<scalar_t> e,
-            vector3<scalar_t> d,
-            scalar_t t0,
-            scalar_t t1,
-            IntersectionResult<scalar_t>& rec)
+             vector3<scalar_t> d,
+             scalar_t t0,
+             scalar_t t1,
+             IntersectionResult<scalar_t>& rec)
     {
-        vector3<scalar_t> dis=center-e;
+        vector3<scalar_t> dis=this->center-e;
         scalar_t projection=dis.dot(d.normalize());
         scalar_t dis2c=sqrt(dis.length()*dis.length()-projection*projection);
-        if(dis2c<radius)
+        if(dis2c<this->radius)
         {
             rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
             rec.t=rec.t/d.squareLength();
@@ -168,7 +184,7 @@ public:
     vector3<scalar_t> up;
     scalar_t FOV;
     scalar_t f;
-    Camera(vector3<scalar_t> postion=vector3<scalar_t>(0,0,0),vector3<scalar_t> forward=vector3<scalar_t>(0,0,-1),vector3<scalar_t> right=vector3<scalar_t>(0,0,0),scalar_t FOV=1,scalar_t f=1)
+    Camera(vector3<scalar_t> postion=vector3<scalar_t>(0,0,2),vector3<scalar_t> forward=vector3<scalar_t>(0,0,-1),vector3<scalar_t> right=vector3<scalar_t>(1,0,0),scalar_t FOV=1.2,scalar_t f=1)
     {
         this->position=postion;
         this->forward=forward;
@@ -193,9 +209,111 @@ class Light
 {
 public:
     vector3<scalar_t> direction;
-    Light(vector3<scalar_t> d=vector3<scalar_t>(0,0,0))
+    scalar_t ambient;
+    Light(vector3<scalar_t> d=vector3<scalar_t>(1,1,1))//against the direction light from
     {
         this->direction=d.normalize();
+        this->ambient=0.15;
+    }
+};
+
+
+//the data structure of object stored as linked list
+template <typename scalar_t>
+class surface_node
+{
+public:
+    surface<scalar_t> *object;
+    surface_node<scalar_t> *next_surface;
+    surface_node(vector3<scalar_t> central,scalar_t radius)
+    {
+        object=new sphere<scalar_t>(central,radius);
+        next_surface=NULL;
+    }
+    ~surface_node()
+    {
+        delete object;
+    }
+};
+
+template <typename scalar_t>
+class surface_list
+{
+public:
+    int len;
+    surface_node<scalar_t> *p_head;
+    surface_node<scalar_t> *p_end;
+    surface_list()
+    {
+        len=0;
+        p_head=NULL;
+        p_end=NULL;
+    }
+    ~surface_list()
+    {
+        if(p_head)
+        {
+            free_memory(p_head);
+        }
+    }
+    void free_memory(surface_node<scalar_t> *p)
+    {
+        if(p)
+        {
+            if(p->next_surface)
+            {
+                free_memory(p->next_surface);
+            }
+        }
+
+        delete p;
+    }
+
+    void append(vector3<scalar_t> central,scalar_t radius)
+    {
+        len++;
+        if(p_head==NULL)
+        {
+            p_head=new surface_node<scalar_t>(central,radius);
+            p_end=p_head;
+        }
+        else
+        {
+            p_end->next_surface=new surface_node<scalar_t>(central,radius);
+            p_end=p_end->next_surface;
+        }
+    }
+
+    bool hit(vector3<scalar_t> e,
+             vector3<scalar_t> d,
+             scalar_t t0,
+             scalar_t t1,
+             IntersectionResult<scalar_t>& rec)
+    {
+        if(!p_head)
+            return false;
+        else
+        {
+            surface_node<scalar_t> *p=p_head;
+            IntersectionResult<scalar_t> record;
+            scalar_t smallest_t=10000.0;
+            bool ishit1=false;
+            for(int i=0;i<this->len;i++)
+            {
+                if(p->object->hit(e,d,t0,t1,record))
+                {
+                    ishit1=true;
+                    if(record.t<smallest_t)
+                    {
+                        smallest_t=record.t;
+                        rec=record;
+                    }
+                }
+                p=p->next_surface;
+            }
+            return ishit1;
+        }
+
     }
 };
 
@@ -203,36 +321,51 @@ template <typename scalar_t>
 class Scence
 {
 public:
-    sphere<scalar_t> sphere0;
-    Camera<scalar_t> camera;
     Light<scalar_t> light;
+    int batch;
+    surface_list<scalar_t> *objs;
+    Camera<scalar_t> camera;
     int size;
-    Scence(sphere<scalar_t> sph,Camera<scalar_t> cam,Light<scalar_t> light)
+    Scence(int img_size,int batch1)
     {
-        this->sphere0=sph;
-        this->camera=cam;
-        this->light=light;
-        size=256;
+        size=img_size;
+        batch=batch1;
+        objs=new surface_list<scalar_t>[batch];
     }
-    cv::Mat render()
+    ~Scence()
     {
-        cv::Mat img(cv::Size(size,size),CV_32FC1);
+        delete [] objs;
+    }
+    void render(cv::Mat *img)
+    {
+        //cv::Mat img(cv::Size(size,size),CV_32FC1);
         for(int u=0;u<size;u++)
         {
-            float* data=img.ptr<float>(u);
+            float* data=img->ptr<float>(u);
             for(int v=0;v<size;v++)
             {
+                //cout<<"here0"<<endl;
                 Ray<scalar_t> ray=camera.generateRay(u,v,size);
+                //cout<<"here1"<<endl;
                 IntersectionResult<scalar_t> result;
-                bool ishit=sphere0.hit(ray.origin,ray.direction,0,100,result);
-                data[v]=1;
+                //cout<<"here2"<<endl;
+                bool ishit;
+                ishit=objs->hit(ray.origin,ray.direction,0,100,result);
+                //cout<<"here3"<<endl;
                 if(ishit)
                 {
-                    data[v]=result.normal.dot(light.direction.normalize());
+                    //cout<<"hit"<<endl;
+                    data[v]=min(1.0,this->light.ambient+max(0.0,0.9*result.normal.dot(light.direction.normalize())));
                 }
+                else
+                {
+                //cout<<"not hit"<<endl;
+                data[v]=0.0;
+                }
+                //cout<<"there"<<endl;
+
             }
         }
-        return img;
     }
 
 

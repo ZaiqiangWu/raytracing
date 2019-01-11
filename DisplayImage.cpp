@@ -28,13 +28,29 @@ int main(int argc, char** argv )
 
         }
     }*/
-    sphere<float> sphere0;
-    sphere0.center=vector3<float>(0,0,-2);
-    sphere0.radius=0.5;
-    Light<float> light(vector3<float>(0,0,-1));
-    Camera<float> cam(vector3<float>(0,0,2),vector3<float>(0,0,-1),vector3<float>(1,0,0),70*3.14/180.0,1.0);
-    Scence<float> scence(sphere0,cam,light);
-    cv::Mat image=scence.render();
+    //sphere<float> sphere0;
+    //sphere0.center=vector3<float>(0,0,-2);
+    //sphere0.radius=0.5;
+    //Light<float> light();
+    //Camera<float> cam(vector3<float>(0,0,2),vector3<float>(0,0,-1),vector3<float>(1,0,0),70*3.14/180.0,1.0);
+    int batch=1;
+    const int num_spheres=2;
+    int size=512;
+
+    Scence<float> scence(size,batch);
+
+    float central_p[3*num_spheres]={-0.4,0.4,0.9,0.3,0.0,0.0};
+    float radius_p[num_spheres]={0.5,0.6};
+    for(int i=0;i<batch;i++)
+    {
+        for(int j=0;j<num_spheres;j++)
+        {
+            scence.objs[i].append(vector3<float>(central_p[i*num_spheres*3+j*3],central_p[i*num_spheres*3+j*3+1],central_p[i*num_spheres*3+j*3+2]),radius_p[i*num_spheres+j]);
+        }
+    }
+    cout<<scence.objs[0].len<<endl;
+    cv::Mat image(cv::Size(size,size),CV_32FC1);
+    scence.render(&image);
     namedWindow("Display Image", WINDOW_AUTOSIZE );
     imshow("Display Image", image);
 
