@@ -371,4 +371,18 @@ public:
 
 };
 
+template <typename scalar_t>
+class Image
+{
+public:
+    int height;
+    int width;
+    int channels;
+    Image(const int h,const int w,const int c);
+    Image(const Image &img_b);
+    ~Image();
+private:
+    scalar_t *img_p;
+};
+
 #endif //DISPLAYIMAGE_RAYTRACING_H
