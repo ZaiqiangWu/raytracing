@@ -2,16 +2,16 @@
 // Created by wuzaiqiang on 18-10-28.
 //
 
+
 #ifndef DISPLAYIMAGE_RAYTRACING_H
 #define DISPLAYIMAGE_RAYTRACING_H
 
-#include <math.h>
 #include <opencv2/opencv.hpp>
+#include <math.h>
+#include <iostream>
 #define min(a,b)  (((a)<(b))?(a):(b))
 #define max(a,b)  (((a)>(b))?(a):(b))
-#include <iostream>
 
-using namespace std;
 template <typename scalar_t>
 class vector3
 {
@@ -19,28 +19,11 @@ public:
     scalar_t x;
     scalar_t y;
     scalar_t z;
-    vector3(scalar_t x=0,scalar_t y=0,scalar_t z=0)
-    {
-        this->x=x;
-        this->y=y;
-        this->z=z;
-    }
-    vector3 operator+(const vector3& v2)
-    {
-        vector3 res;
-        res.x=this->x+v2.x;
-        res.y=this->y+v2.y;
-        res.z=this->z+v2.z;
-        return res;
-    }
-    vector3 operator-(const vector3& v2)
-    {
-        vector3 res;
-        res.x=this->x-v2.x;
-        res.y=this->y-v2.y;
-        res.z=this->z-v2.z;
-        return res;
-    }
+    vector3(scalar_t x,scalar_t y,scalar_t z);
+    vector3 operator+(const vector3& v2);
+
+    vector3 operator-(const vector3& v2);
+
     vector3 operator*(scalar_t v) const {
         return vector3(v*x,v*y,v*z);
     }
@@ -318,6 +301,25 @@ public:
 };
 
 template <typename scalar_t>
+class Image
+{
+public:
+    int height;
+    int width;
+    int channels;
+    Image(const int h,const int w,const int c);
+    Image(const Image<scalar_t> &img_b);
+    ~Image();
+    cv::Mat GetOpencvMat();
+    scalar_t* ptr()
+    {
+        return img_p;
+    }
+private:
+    scalar_t *img_p;
+};
+
+template <typename scalar_t>
 class Scence
 {
 public:
@@ -336,53 +338,9 @@ public:
     {
         delete [] objs;
     }
-    void render(cv::Mat *img)
-    {
-        //cv::Mat img(cv::Size(size,size),CV_32FC1);
-        for(int u=0;u<size;u++)
-        {
-            float* data=img->ptr<float>(u);
-            for(int v=0;v<size;v++)
-            {
-                //cout<<"here0"<<endl;
-                Ray<scalar_t> ray=camera.generateRay(u,v,size);
-                //cout<<"here1"<<endl;
-                IntersectionResult<scalar_t> result;
-                //cout<<"here2"<<endl;
-                bool ishit;
-                ishit=objs->hit(ray.origin,ray.direction,0,100,result);
-                //cout<<"here3"<<endl;
-                if(ishit)
-                {
-                    //cout<<"hit"<<endl;
-                    data[v]=min(1.0,this->light.ambient+max(0.0,0.9*result.normal.dot(light.direction.normalize())));
-                }
-                else
-                {
-                //cout<<"not hit"<<endl;
-                data[v]=0.0;
-                }
-                //cout<<"there"<<endl;
+    Image<scalar_t> render();
 
-            }
-        }
-    }
-
-
-};
-
-template <typename scalar_t>
-class Image
-{
-public:
-    int height;
-    int width;
-    int channels;
-    Image(const int h,const int w,const int c);
-    Image(const Image &img_b);
-    ~Image();
-private:
-    scalar_t *img_p;
 };
 
 #endif //DISPLAYIMAGE_RAYTRACING_H
+
