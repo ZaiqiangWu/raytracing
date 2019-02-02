@@ -24,24 +24,14 @@ public:
 
     vector3 operator-(const vector3& v2);
 
-    vector3 operator*(scalar_t v) const {
-        return vector3(v*x,v*y,v*z);
-    }
-    vector3 operator/(scalar_t v) const {
-        return vector3(x/v,y/v,z/v);
-    }
+    vector3 operator*(scalar_t v) const;
+    friend vector3<scalar_t> operator*(const scalar_t &v,const vector3<scalar_t> &vec) const;
+    vector3 operator/(scalar_t v) const;
     scalar_t dot(const vector3& v2)
     {
         return this->x*v2.x+this->y*v2.y+this->z*v2.z;
     }
-    vector3 cross(const vector3& v2)
-    {
-        vector3 res;
-        res.x=this->y*v2.z-this->z*v2.y;
-        res.y=this->z*v2.x-this->x*v2.z;
-        res.z=this->x*v2.y-this->y*v2.x;
-        return res;
-    }
+    vector3 cross(const vector3& v2);
     scalar_t length()
     {
         return sqrt(x*x+y*y+z*z);

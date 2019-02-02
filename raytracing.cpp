@@ -33,6 +33,34 @@ return res;
 }
 
 template <typename scalar_t>
+vector3<scalar_t> vector3<scalar_t>::operator*(scalar_t v) const //表示这个函数只有读的操作，没有写操作，不允许函数改变成员变量的值
+{
+    return vector3(v*x,v*y,v*z);
+}
+
+template <typename scalar_t>
+vector3<scalar_t> operator*(const scalar_t &v,const vector3<scalar_t> &vec) const
+{
+    return v*vec;
+}
+
+template <typename scalar_t>
+vector3<scalar_t> vector3<scalar_t>:: operator/(scalar_t v) const
+{
+    return vector3(x/v,y/v,z/v);
+}
+
+template <typename scalar_t>
+vector3<scalar_t> vector3<scalar_t>::cross(const vector3<scalar_t> &v2)
+{
+    vector3 res;
+    res.x=this->y*v2.z-this->z*v2.y;
+    res.y=this->z*v2.x-this->x*v2.z;
+    res.z=this->x*v2.y-this->y*v2.x;
+    return res;
+}
+
+template <typename scalar_t>
 Image<scalar_t>::Image(const int h, const int w, const int c) {
     this->height = h;
     this->width = w;
