@@ -27,24 +27,11 @@ public:
     vector3 operator*(scalar_t v) const;
     friend vector3<scalar_t> operator*(const scalar_t &v,const vector3<scalar_t> &vec) const;
     vector3 operator/(scalar_t v) const;
-    scalar_t dot(const vector3& v2)
-    {
-        return this->x*v2.x+this->y*v2.y+this->z*v2.z;
-    }
+    scalar_t dot(const vector3& v2);
     vector3 cross(const vector3& v2);
-    scalar_t length()
-    {
-        return sqrt(x*x+y*y+z*z);
-    }
-    scalar_t squareLength()
-    {
-        return x*x+y*y+z*z;
-    }
-    vector3 normalize()
-    {
-        scalar_t invlen=1/length();
-        return *this*invlen;
-    }
+    scalar_t length();
+    scalar_t squareLength();
+    vector3 normalize();
 };
 
 template <typename scalar_t>

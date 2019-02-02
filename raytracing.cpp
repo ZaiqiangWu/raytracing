@@ -51,6 +51,12 @@ vector3<scalar_t> vector3<scalar_t>:: operator/(scalar_t v) const
 }
 
 template <typename scalar_t>
+scalar_t vector3<scalar_t>::dot(const vector3& v2)
+{
+    return this->x*v2.x+this->y*v2.y+this->z*v2.z;
+}
+
+template <typename scalar_t>
 vector3<scalar_t> vector3<scalar_t>::cross(const vector3<scalar_t> &v2)
 {
     vector3 res;
@@ -58,6 +64,25 @@ vector3<scalar_t> vector3<scalar_t>::cross(const vector3<scalar_t> &v2)
     res.y=this->z*v2.x-this->x*v2.z;
     res.z=this->x*v2.y-this->y*v2.x;
     return res;
+}
+
+template <typename scalar_t>
+scalar_t vector3<scalar_t>::squareLength()
+{
+    return x*x+y*y+z*z;
+}
+
+template <typename scalar_t>
+scalar_t vector3<scalar_t>::length()
+{
+    return sqrt(x*x+y*y+z*z);
+}
+
+template <typename scalar_t>
+vector3<scalar_t> vector3<scalar_t>::normalize()
+{
+    scalar_t invlen=1/length();
+    return *this*invlen;
 }
 
 template <typename scalar_t>
