@@ -165,6 +165,39 @@ Camera<scalar_t>::Camera(vector3<scalar_t> postion,
 }
 
 template <typename scalar_t>
+Ray<scalar_t> Camera<scalar_t>::generateRay(int u,int v,const int size)
+{
+    vector3<scalar_t> center=position+forward.normalize()*f;
+    scalar_t pixelSize=f*tan(FOV/2)*2/(scalar_t)size;
+    vector3<scalar_t> origin=center-this->right*0.5*pixelSize*size+this->up*0.5*pixelSize*size;
+    vector3<scalar_t> location=origin-this->up*(0.5+u)*pixelSize+(0.5+v)*pixelSize;
+    Ray<scalar_t> ray(position,(location-position).normalize());
+    return ray;
+}
+
+template <typename scalar_t>
+Light<scalar_t>::Light(vector3<scalar_t> d)//against the direction light from
+{
+    this->direction=d.normalize();
+    this->ambient=0.15;
+}
+
+template <typename scalar_t>
+surface_node<scalar_t>::surface_node(vector3<scalar_t> central,scalar_t radius)
+{
+    object=new sphere<scalar_t>(central,radius);
+    next_surface=NULL;
+}
+
+template <typename scalar_t>
+surface_node<scalar_t>::~surface_node()
+{
+    delete object;
+}
+
+
+
+template <typename scalar_t>
 Image<scalar_t>::Image(const int h, const int w, const int c) {
     this->height = h;
     this->width = w;

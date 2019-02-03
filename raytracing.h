@@ -111,15 +111,7 @@ public:
             vector3<scalar_t> right=vector3<scalar_t>(1,0,0),
             scalar_t FOV=1.2,
             scalar_t f=1);
-    Ray<scalar_t> generateRay(int u,int v,const int size)
-    {
-        vector3<scalar_t> center=position+forward.normalize()*f;
-        scalar_t pixelSize=f*tan(FOV/2)*2/(scalar_t)size;
-        vector3<scalar_t> origin=center-this->right*0.5*pixelSize*size+this->up*0.5*pixelSize*size;
-        vector3<scalar_t> location=origin-this->up*(0.5+u)*pixelSize+(0.5+v)*pixelSize;
-        Ray<scalar_t> ray(position,(location-position).normalize());
-        return ray;
-    }
+    Ray<scalar_t> generateRay(int u,int v,const int size);
 };
 
 template <typename scalar_t>
@@ -128,11 +120,7 @@ class Light
 public:
     vector3<scalar_t> direction;
     scalar_t ambient;
-    Light(vector3<scalar_t> d=vector3<scalar_t>(1,1,1))//against the direction light from
-    {
-        this->direction=d.normalize();
-        this->ambient=0.15;
-    }
+    explicit Light(vector3<scalar_t> d=vector3<scalar_t>(1,1,1));//against the direction light from
 };
 
 
@@ -143,15 +131,8 @@ class surface_node
 public:
     surface<scalar_t> *object;
     surface_node<scalar_t> *next_surface;
-    surface_node(vector3<scalar_t> central,scalar_t radius)
-    {
-        object=new sphere<scalar_t>(central,radius);
-        next_surface=NULL;
-    }
-    ~surface_node()
-    {
-        delete object;
-    }
+    surface_node(vector3<scalar_t> central,scalar_t radius);
+    ~surface_node();
 };
 
 template <typename scalar_t>
