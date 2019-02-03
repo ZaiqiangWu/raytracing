@@ -106,6 +106,65 @@ vector3<scalar_t> Ray<scalar_t>::getPoint(scalar_t t)
 }
 
 template <typename scalar_t>
+IntersectionResult<scalar_t>::IntersectionResult(scalar_t t,
+        vector3<scalar_t> normal,
+        vector3<scalar_t> position)
+{
+    this->t=t;
+    this->normal=normal;
+    this->position=position;
+}
+
+template <typename scalar_t>
+surface<scalar_t>::~surface() {;}
+
+template <typename scalar_t>
+sphere<scalar_t>::sphere(vector3<scalar_t> central, scalar_t radius) {
+    this->center=central;
+    this->radius=radius;
+}
+
+template <typename scalar_t>
+bool sphere<scalar_t>::hit(vector3<scalar_t> e,
+         vector3<scalar_t> d,
+         scalar_t t0,
+         scalar_t t1,
+         IntersectionResult<scalar_t>& rec)
+{
+    vector3<scalar_t> dis=this->center-e;
+    scalar_t projection=dis.dot(d.normalize());
+    scalar_t dis2c=sqrt(dis.length()*dis.length()-projection*projection);
+    if(dis2c<this->radius)
+    {
+        rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
+        if(rec.t<t0||rec.t>t1)
+            return false;
+        rec.t=rec.t/d.squareLength();
+        Ray<scalar_t> ray(e,d);
+        rec.position=ray.getPoint(rec.t);
+        rec.normal=(rec.position-center).normalize();
+        return true;
+    }
+    else
+        return false;
+}
+
+template <typename scalar_t>
+Camera<scalar_t>::Camera(vector3<scalar_t> postion,
+        vector3<scalar_t> forward,
+        vector3<scalar_t> right,
+        scalar_t FOV,
+        scalar_t f)
+{
+    this->position=postion;
+    this->forward=forward;
+    this->right=right;
+    this->FOV=FOV;
+    this->f=f;
+    this->up=this->right.cross(this->forward);
+}
+
+template <typename scalar_t>
 Image<scalar_t>::Image(const int h, const int w, const int c) {
     this->height = h;
     this->width = w;

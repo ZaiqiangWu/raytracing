@@ -59,12 +59,7 @@ public:
     scalar_t t;
     vector3<scalar_t> normal;
     vector3<scalar_t> position;
-    IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0))
-    {
-        this->t=t;
-        this->normal=normal;
-        this->position=position;
-    }
+    IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0));
 };
 
 template <typename scalar_t>
@@ -75,10 +70,8 @@ public:
     //scalar_t radius;
     virtual bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)=0;
     //virtual box<scalar_t> bounding_box()=0;
-    virtual ~surface()
-    {
-        ;
-    }
+    virtual ~surface();
+
 };
 
 template <typename scalar_t>
@@ -94,33 +87,13 @@ public:
     }*/
     vector3<scalar_t> center;
     scalar_t radius;
-    sphere(vector3<scalar_t> central,scalar_t radius)
-    {
-        this->center=central;
-        this->radius=radius;
-    }
+    sphere(vector3<scalar_t> central,scalar_t radius);
 
     bool hit(vector3<scalar_t> e,
              vector3<scalar_t> d,
              scalar_t t0,
              scalar_t t1,
-             IntersectionResult<scalar_t>& rec)
-    {
-        vector3<scalar_t> dis=this->center-e;
-        scalar_t projection=dis.dot(d.normalize());
-        scalar_t dis2c=sqrt(dis.length()*dis.length()-projection*projection);
-        if(dis2c<this->radius)
-        {
-            rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
-            rec.t=rec.t/d.squareLength();
-            Ray<scalar_t> ray(e,d);
-            rec.position=ray.getPoint(rec.t);
-            rec.normal=(rec.position-center).normalize();
-            return true;
-        }
-        else
-            return false;
-    }
+             IntersectionResult<scalar_t>& rec);
 };
 
 template <typename scalar_t>
@@ -133,15 +106,11 @@ public:
     vector3<scalar_t> up;
     scalar_t FOV;
     scalar_t f;
-    Camera(vector3<scalar_t> postion=vector3<scalar_t>(0,0,2),vector3<scalar_t> forward=vector3<scalar_t>(0,0,-1),vector3<scalar_t> right=vector3<scalar_t>(1,0,0),scalar_t FOV=1.2,scalar_t f=1)
-    {
-        this->position=postion;
-        this->forward=forward;
-        this->right=right;
-        this->FOV=FOV;
-        this->f=f;
-        this->up=this->right.cross(this->forward);
-    }
+    Camera(vector3<scalar_t> postion=vector3<scalar_t>(0,0,2),
+            vector3<scalar_t> forward=vector3<scalar_t>(0,0,-1),
+            vector3<scalar_t> right=vector3<scalar_t>(1,0,0),
+            scalar_t FOV=1.2,
+            scalar_t f=1);
     Ray<scalar_t> generateRay(int u,int v,const int size)
     {
         vector3<scalar_t> center=position+forward.normalize()*f;
