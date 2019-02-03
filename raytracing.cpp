@@ -86,6 +86,26 @@ vector3<scalar_t> vector3<scalar_t>::normalize()
 }
 
 template <typename scalar_t>
+Box<scalar_t>::Box(vector3<scalar_t> min,vector3<scalar_t> max)
+{
+    this->min_xyz=min;
+    this->max_xyz=max;
+}
+
+template <typename scalar_t>
+Ray<scalar_t>::Ray(vector3<scalar_t> origin,vector3<scalar_t> direction)
+{
+    this->origin=origin;
+    this->direction=direction;
+}
+
+template <typename scalar_t>
+vector3<scalar_t> Ray<scalar_t>::getPoint(scalar_t t)
+{
+    return origin+direction*t;
+}
+
+template <typename scalar_t>
 Image<scalar_t>::Image(const int h, const int w, const int c) {
     this->height = h;
     this->width = w;

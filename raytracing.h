@@ -35,16 +35,12 @@ public:
 };
 
 template <typename scalar_t>
-class box
+class Box
 {
 public:
-    vector3<scalar_t> min;
-    vector3<scalar_t> max;
-    box(vector3<scalar_t> min,vector3<scalar_t> max)
-    {
-        this->min=min;
-        this->max=max;
-    }
+    vector3<scalar_t> min_xyz;
+    vector3<scalar_t> max_xyz;
+    Box(vector3<scalar_t> min,vector3<scalar_t> max);
 };
 
 template <typename scalar_t>
@@ -52,15 +48,8 @@ class Ray
 {
 public:
     vector3<scalar_t> origin,direction;
-    Ray(vector3<scalar_t> origin,vector3<scalar_t> direction)
-    {
-        this->origin=origin;
-        this->direction=direction;
-    }
-    vector3<scalar_t> getPoint(scalar_t t)
-    {
-        return origin+direction*t;
-    }
+    Ray(vector3<scalar_t> origin,vector3<scalar_t> direction);
+    vector3<scalar_t> getPoint(scalar_t t);
 };
 
 template <typename scalar_t>
