@@ -142,78 +142,17 @@ public:
     int len;
     surface_node<scalar_t> *p_head;
     surface_node<scalar_t> *p_end;
-    surface_list()
-    {
-        len=0;
-        p_head=NULL;
-        p_end=NULL;
-    }
-    ~surface_list()
-    {
-        if(p_head)
-        {
-            free_memory(p_head);
-        }
-    }
-    void free_memory(surface_node<scalar_t> *p)
-    {
-        if(p)
-        {
-            if(p->next_surface)
-            {
-                free_memory(p->next_surface);
-            }
-        }
+    surface_list();
+    ~surface_list();
+    void free_memory(surface_node<scalar_t> *p);
 
-        delete p;
-    }
-
-    void append(vector3<scalar_t> central,scalar_t radius)
-    {
-        len++;
-        if(p_head==NULL)
-        {
-            p_head=new surface_node<scalar_t>(central,radius);
-            p_end=p_head;
-        }
-        else
-        {
-            p_end->next_surface=new surface_node<scalar_t>(central,radius);
-            p_end=p_end->next_surface;
-        }
-    }
+    void append(vector3<scalar_t> central,scalar_t radius);
 
     bool hit(vector3<scalar_t> e,
              vector3<scalar_t> d,
              scalar_t t0,
              scalar_t t1,
-             IntersectionResult<scalar_t>& rec)
-    {
-        if(!p_head)
-            return false;
-        else
-        {
-            surface_node<scalar_t> *p=p_head;
-            IntersectionResult<scalar_t> record;
-            scalar_t smallest_t=10000.0;
-            bool ishit1=false;
-            for(int i=0;i<this->len;i++)
-            {
-                if(p->object->hit(e,d,t0,t1,record))
-                {
-                    ishit1=true;
-                    if(record.t<smallest_t)
-                    {
-                        smallest_t=record.t;
-                        rec=record;
-                    }
-                }
-                p=p->next_surface;
-            }
-            return ishit1;
-        }
-
-    }
+             IntersectionResult<scalar_t>& rec);
 };
 
 template <typename scalar_t>
@@ -244,16 +183,8 @@ public:
     surface_list<scalar_t> *objs;
     Camera<scalar_t> camera;
     int size;
-    Scence(int img_size,int batch1)
-    {
-        size=img_size;
-        batch=batch1;
-        objs=new surface_list<scalar_t>[batch];
-    }
-    ~Scence()
-    {
-        delete [] objs;
-    }
+    Scence(int img_size,int batch1);
+    ~Scence();
     Image<scalar_t> render();
 
 };

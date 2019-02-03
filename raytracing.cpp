@@ -195,7 +195,85 @@ surface_node<scalar_t>::~surface_node()
     delete object;
 }
 
+template <typename scalar_t>
+surface_list<scalar_t>::surface_list()
+{
+    len=0;
+    p_head=NULL;
+    p_end=NULL;
+}
 
+template <typename scalar_t>
+surface_list<scalar_t>::~surface_list()
+{
+    if(p_head)
+    {
+        free_memory(p_head);
+    }
+}
+
+template <typename scalar_t>
+void surface_list<scalar_t>::free_memory(surface_node<scalar_t> *p)
+{
+    if(p)
+    {
+        if(p->next_surface)
+        {
+            free_memory(p->next_surface);
+        }
+    }
+
+    delete p;
+}
+
+template <typename scalar_t>
+void surface_list<scalar_t>::append(vector3<scalar_t> central,scalar_t radius)
+{
+    len++;
+    if(p_head==NULL)
+    {
+        p_head=new surface_node<scalar_t>(central,radius);
+        p_end=p_head;
+    }
+    else
+    {
+        p_end->next_surface=new surface_node<scalar_t>(central,radius);
+        p_end=p_end->next_surface;
+    }
+}
+
+template <typename scalar_t>
+bool surface_list<scalar_t>::hit(vector3<scalar_t> e,
+         vector3<scalar_t> d,
+         scalar_t t0,
+         scalar_t t1,
+         IntersectionResult<scalar_t>& rec)
+{
+    if(!p_head)
+        return false;
+    else
+    {
+        surface_node<scalar_t> *p=p_head;
+        IntersectionResult<scalar_t> record;
+        scalar_t smallest_t=10000.0;
+        bool ishit1=false;
+        for(int i=0;i<this->len;i++)
+        {
+            if(p->object->hit(e,d,t0,t1,record))
+            {
+                ishit1=true;
+                if(record.t<smallest_t)
+                {
+                    smallest_t=record.t;
+                    rec=record;
+                }
+            }
+            p=p->next_surface;
+        }
+        return ishit1;
+    }
+
+}
 
 template <typename scalar_t>
 Image<scalar_t>::Image(const int h, const int w, const int c) {
@@ -289,4 +367,18 @@ Image<scalar_t> Scence<scalar_t>::render()
         }
     }
     return img;
+}
+
+template <typename scalar_t>
+Scence<scalar_t>::Scence(int img_size,int batch1)
+{
+    size=img_size;
+    batch=batch1;
+    objs=new surface_list<scalar_t>[batch];
+}
+
+template <typename scalar_t>
+Scence<scalar_t>::~Scence()
+{
+    delete [] objs;
 }
