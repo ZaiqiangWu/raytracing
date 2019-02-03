@@ -2,7 +2,8 @@
 // Created by wuzaiqiang on 19-1-31.
 //
 #include "raytracing.h"
-
+#define min(a,b)  (((a)<(b))?(a):(b))
+#define max(a,b)  (((a)>(b))?(a):(b))
 
 
 template <typename scalar_t>
@@ -38,8 +39,8 @@ vector3<scalar_t> vector3<scalar_t>::operator*(scalar_t v) const //表示这个�
     return vector3(v*x,v*y,v*z);
 }
 
-template <typename scalar_t>
-vector3<scalar_t> operator*(const scalar_t &v,const vector3<scalar_t> &vec) const
+template <typename scalar_t1>
+vector3<scalar_t1> operator*(const scalar_t1 &v,const vector3<scalar_t1> &vec)
 {
     return v*vec;
 }
@@ -367,6 +368,12 @@ Image<scalar_t> Scence<scalar_t>::render()
         }
     }
     return img;
+}
+
+template <typename scalar_t>
+scalar_t* Image<scalar_t>::ptr()
+{
+    return img_p;
 }
 
 template <typename scalar_t>

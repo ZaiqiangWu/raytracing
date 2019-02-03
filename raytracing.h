@@ -7,10 +7,10 @@
 #define DISPLAYIMAGE_RAYTRACING_H
 
 #include <opencv2/opencv.hpp>
-#include <math.h>
-#include <iostream>
-#define min(a,b)  (((a)<(b))?(a):(b))
-#define max(a,b)  (((a)>(b))?(a):(b))
+#include <cmath>
+
+
+
 
 template <typename scalar_t>
 class vector3
@@ -25,7 +25,8 @@ public:
     vector3 operator-(const vector3& v2);
 
     vector3 operator*(scalar_t v) const;
-    friend vector3<scalar_t> operator*(const scalar_t &v,const vector3<scalar_t> &vec) const;
+    template <typename scalar_t1>
+    friend vector3<scalar_t1> operator*(const scalar_t1 &v,const vector3<scalar_t1> &vec);
     vector3 operator/(scalar_t v) const;
     scalar_t dot(const vector3& v2);
     vector3 cross(const vector3& v2);
@@ -166,10 +167,7 @@ public:
     Image(const Image<scalar_t> &img_b);
     ~Image();
     cv::Mat GetOpencvMat();
-    scalar_t* ptr()
-    {
-        return img_p;
-    }
+    scalar_t* ptr();
 private:
     scalar_t *img_p;
 };
