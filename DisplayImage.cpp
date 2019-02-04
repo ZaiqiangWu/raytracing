@@ -10,17 +10,17 @@ int main(int argc, char** argv )
 {
     int batch=1;
     const int num_spheres=2;
-    int size=512;
+    int size=1024;
 
     Scence<float> scence(size,batch);
 
-    float central_p[3*num_spheres]={-0.5,0.0,-0.0,0.3,0.0,0.0};
+    float central_p[3*num_spheres]={-0.9,0.0,-0.0,0.5,0.0,0.0};
     float radius_p[num_spheres]={0.5,0.6};
     for(int i=0;i<batch;i++)
     {
         for(int j=0;j<num_spheres;j++)
         {
-            scence.objs[i].append(vector3<float>(central_p[i*num_spheres*3+j*3],central_p[i*num_spheres*3+j*3+1],central_p[i*num_spheres*3+j*3+2]),radius_p[i*num_spheres+j]);
+            scence.objs[i].append(vector3<float>(central_p[i*num_spheres*3+j*3],central_p[i*num_spheres*3+j*3+1],central_p[i*num_spheres*3+j*3+2]),radius_p[i*num_spheres+j],j);
         }
     }
     cout<<scence.objs[0].len<<endl;

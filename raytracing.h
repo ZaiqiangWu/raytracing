@@ -61,7 +61,8 @@ public:
     scalar_t t;
     vector3<scalar_t> normal;
     vector3<scalar_t> position;
-    IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0));
+    int mtl;
+    IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0),int mtl=0);
 };
 
 template <typename scalar_t>
@@ -73,6 +74,7 @@ public:
     virtual bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)=0;
     //virtual box<scalar_t> bounding_box()=0;
     virtual ~surface();
+    int mtl;
 
 };
 
@@ -89,7 +91,7 @@ public:
     }*/
     vector3<scalar_t> center;
     scalar_t radius;
-    sphere(vector3<scalar_t> central,scalar_t radius);
+    sphere(vector3<scalar_t> central,scalar_t radius,int mtl=0);
 
     bool hit(vector3<scalar_t> e,
              vector3<scalar_t> d,
@@ -133,7 +135,7 @@ class surface_node
 public:
     surface<scalar_t> *object;
     surface_node<scalar_t> *next_surface;
-    surface_node(vector3<scalar_t> central,scalar_t radius);
+    surface_node(vector3<scalar_t> central,scalar_t radius,int mtl=0);
     ~surface_node();
 };
 
@@ -148,7 +150,7 @@ public:
     ~surface_list();
     void free_memory(surface_node<scalar_t> *p);
 
-    void append(vector3<scalar_t> central,scalar_t radius);
+    void append(vector3<scalar_t> central,scalar_t radius,int mtl=0);
 
     bool hit(vector3<scalar_t> e,
              vector3<scalar_t> d,
@@ -184,6 +186,7 @@ public:
     int size;
     Scence(int img_size,int batch1);
     ~Scence();
+    scalar_t IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction);
     Image<scalar_t> render();
 
 };
@@ -224,7 +227,7 @@ vector3<scalar_t> vector3<scalar_t>::operator*(scalar_t v) const //表示这个�
 template <typename scalar_t1>
 vector3<scalar_t1> operator*(const scalar_t1 &v,const vector3<scalar_t1> &vec)
 {
-    return v*vec;
+    return vec*v;
 }
 
 template <typename scalar_t>
@@ -291,20 +294,23 @@ vector3<scalar_t> Ray<scalar_t>::getPoint(scalar_t t)
 template <typename scalar_t>
 IntersectionResult<scalar_t>::IntersectionResult(scalar_t t,
                                                  vector3<scalar_t> normal,
-                                                 vector3<scalar_t> position)
+                                                 vector3<scalar_t> position,
+                                                 int mtl)
 {
     this->t=t;
     this->normal=normal;
     this->position=position;
+    this->mtl=mtl;
 }
 
 template <typename scalar_t>
 surface<scalar_t>::~surface() {;}
 
 template <typename scalar_t>
-sphere<scalar_t>::sphere(vector3<scalar_t> central, scalar_t radius) {
+sphere<scalar_t>::sphere(vector3<scalar_t> central, scalar_t radius,int mtl) {
     this->center=central;
     this->radius=radius;
+    this->mtl=mtl;
 }
 
 template <typename scalar_t>
@@ -326,6 +332,7 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
         Ray<scalar_t> ray(e,d);
         rec.position=ray.getPoint(rec.t);
         rec.normal=(rec.position-center).normalize();
+        rec.mtl=this->mtl;
         return true;
     }
     else
@@ -366,9 +373,9 @@ Light<scalar_t>::Light(vector3<scalar_t> d)//against the direction light from
 }
 
 template <typename scalar_t>
-surface_node<scalar_t>::surface_node(vector3<scalar_t> central,scalar_t radius)
+surface_node<scalar_t>::surface_node(vector3<scalar_t> central,scalar_t radius,int mtl)
 {
-    object=new sphere<scalar_t>(central,radius);
+    object=new sphere<scalar_t>(central,radius,mtl);
     next_surface=NULL;
 }
 
@@ -410,17 +417,17 @@ void surface_list<scalar_t>::free_memory(surface_node<scalar_t> *p)
 }
 
 template <typename scalar_t>
-void surface_list<scalar_t>::append(vector3<scalar_t> central,scalar_t radius)
+void surface_list<scalar_t>::append(vector3<scalar_t> central,scalar_t radius,int mtl)
 {
     len++;
     if(p_head==NULL)
     {
-        p_head=new surface_node<scalar_t>(central,radius);
+        p_head=new surface_node<scalar_t>(central,radius,mtl);
         p_end=p_head;
     }
     else
     {
-        p_end->next_surface=new surface_node<scalar_t>(central,radius);
+        p_end->next_surface=new surface_node<scalar_t>(central,radius,mtl);
         p_end=p_end->next_surface;
     }
 }
@@ -520,6 +527,41 @@ Image<scalar_t>::~Image() {
 }
 
 template <typename scalar_t>
+scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scalar_t> direction)
+{
+    IntersectionResult<scalar_t> result;
+    IntersectionResult<scalar_t> result1;
+    scalar_t color=light.ambient;
+    //cout<<"here2"<<endl;
+    bool ishit;
+    bool isinshadow;
+    ishit=objs->hit(origin,direction,0,100,result);
+    if(ishit)
+    {
+        //cout<<"hit"<<endl;
+        //is in shadow?
+        isinshadow=objs->hit(result.position,light.direction,0,100,result1);
+        if(isinshadow)
+        {
+            ;
+        }
+        else
+            color+=max(0.0,0.9*result.normal.dot(light.direction.normalize()));
+        if(1==result.mtl)
+        {
+            color+=0.5*IntersectColor(result.position,direction+2*direction.dot(result.normal)*result.normal);
+        }
+    }
+    else
+    {
+        color=0.0;
+    }
+
+    return color;
+
+}
+
+template <typename scalar_t>
 Image<scalar_t> Scence<scalar_t>::render()
 {
     //cv::Mat img(cv::Size(size,size),CV_32FC1);
@@ -532,29 +574,9 @@ Image<scalar_t> Scence<scalar_t>::render()
             //cout<<"here0"<<endl;
             Ray<scalar_t> ray=camera.generateRay(u,v,size);
             //cout<<"here1"<<endl;
-            IntersectionResult<scalar_t> result;
-            IntersectionResult<scalar_t> result1;
-            //cout<<"here2"<<endl;
-            bool ishit;
-            bool isinshadow;
-            ishit=objs->hit(ray.origin,ray.direction,0,100,result);
-            //cout<<"here3"<<endl;
-            if(ishit)
-            {
-                //cout<<"hit"<<endl;
-                //is in shadow?
-                isinshadow=objs->hit(result.position,light.direction,0,100,result1);
-                if(isinshadow)
-                {
-                    data[u*size+v]=light.ambient;
-                }
-                else
-                    data[u*size+v]=min(1.0,this->light.ambient+max(0.0,0.9*result.normal.dot(light.direction.normalize())));
-            }
-            else
-            {
-                data[u*size+v]=0.0;
-            }
+
+            data[u*size+v]=IntersectColor(ray.origin,ray.direction);
+
 
         }
     }
