@@ -533,14 +533,23 @@ Image<scalar_t> Scence<scalar_t>::render()
             Ray<scalar_t> ray=camera.generateRay(u,v,size);
             //cout<<"here1"<<endl;
             IntersectionResult<scalar_t> result;
+            IntersectionResult<scalar_t> result1;
             //cout<<"here2"<<endl;
             bool ishit;
+            bool isinshadow;
             ishit=objs->hit(ray.origin,ray.direction,0,100,result);
             //cout<<"here3"<<endl;
             if(ishit)
             {
                 //cout<<"hit"<<endl;
-                data[u*size+v]=min(1.0,this->light.ambient+max(0.0,0.9*result.normal.dot(light.direction.normalize())));
+                //is in shadow?
+                isinshadow=objs->hit(result.position,light.direction,0,100,result1);
+                if(isinshadow)
+                {
+                    data[u*size+v]=light.ambient;
+                }
+                else
+                    data[u*size+v]=min(1.0,this->light.ambient+max(0.0,0.9*result.normal.dot(light.direction.normalize())));
             }
             else
             {
