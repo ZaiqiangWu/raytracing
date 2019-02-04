@@ -531,13 +531,14 @@ scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scal
 {
     IntersectionResult<scalar_t> result;
     IntersectionResult<scalar_t> result1;
-    scalar_t color=light.ambient;
+    scalar_t color=0.0;
     //cout<<"here2"<<endl;
     bool ishit;
     bool isinshadow;
     ishit=objs->hit(origin,direction,0,100,result);
     if(ishit)
     {
+        color+=light.ambient;
         //cout<<"hit"<<endl;
         //is in shadow?
         isinshadow=objs->hit(result.position,light.direction,0,100,result1);
@@ -546,10 +547,10 @@ scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scal
             ;
         }
         else
-            color+=max(0.0,0.9*result.normal.dot(light.direction.normalize()));
+            color+=max(0.0,0.8*result.normal.dot(light.direction.normalize()));
         if(1==result.mtl)
         {
-            color+=0.5*IntersectColor(result.position,direction+2*direction.dot(result.normal)*result.normal);
+            color+=0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal);
         }
     }
     else
@@ -557,7 +558,7 @@ scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scal
         color=0.0;
     }
 
-    return color;
+    return min(1.0,color);
 
 }
 

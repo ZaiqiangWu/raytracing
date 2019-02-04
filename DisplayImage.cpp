@@ -15,7 +15,7 @@ int main(int argc, char** argv )
     Scence<float> scence(size,batch);
 
     float central_p[3*num_spheres]={-0.9,0.0,-0.0,0.5,0.0,0.0};
-    float radius_p[num_spheres]={0.5,0.6};
+    float radius_p[num_spheres]={0.6,0.6};
     for(int i=0;i<batch;i++)
     {
         for(int j=0;j<num_spheres;j++)
