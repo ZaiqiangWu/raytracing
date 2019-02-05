@@ -101,6 +101,107 @@ public:
 };
 
 template <typename scalar_t>
+class rectangle:public surface<scalar_t>
+{
+public:
+    vector3<scalar_t> central;
+    scalar_t width;
+    scalar_t height;
+    vector3<scalar_t> normal;
+    vector3<scalar_t> up;
+    vector3<scalar_t> right;
+    vector3<scalar_t> p0;
+    vector3<scalar_t> p1;
+    vector3<scalar_t> p2;
+    vector3<scalar_t> p3;
+    explicit plane(scalar_t h=1.0, scalar_t w=1.0)
+    {
+        central=vector3<scalar_t>(0,0,0);
+        height=h;
+        width=w;
+        normal=vector3<scalar_t>(0,0,1);
+        up=vector3<scalar_t>(0,1,0);
+        right=vector3<scalar_t>(1,0,0);
+        p0=central+0.5*height*up-0.5*width*right;
+        p1=central-0.5*height*up-0.5*width*right;
+        p2=central-0.5*height*up+0.5*width*right;
+        p3=central+0.5*height*up+0.5*width*right;
+    }
+    void translate(scalar_t x,scalar_t y,scalar_t z)
+    {
+        central+=vector3<scalar_t>(x,y,z);
+        p0+=vector3<scalar_t>(x,y,z);
+        p1+=vector3<scalar_t>(x,y,z);
+        p2+=vector3<scalar_t>(x,y,z);
+        p3+=vector3<scalar_t>(x,y,z);
+    }
+    void rotationX(scalar_t theta)
+    {
+        p0=vectorRotation('x',theta,p0-central)+central;
+        p1=vectorRotation('x',theta,p1-central)+central;
+        p2=vectorRotation('x',theta,p2-central)+central;
+        p3=vectorRotation('x',theta,p3-central)+central;
+        normal=vectorRotation('x',theta,normal);
+        up=vectorRotation('x',theta,up);
+        right=vectorRotation('x',theta,right);
+    }
+    void rotationY(scalar_t theta)
+    {
+        p0=vectorRotation('y',theta,p0-central)+central;
+        p1=vectorRotation('y',theta,p1-central)+central;
+        p2=vectorRotation('y',theta,p2-central)+central;
+        p3=vectorRotation('y',theta,p3-central)+central;
+        normal=vectorRotation('y',theta,normal);
+        up=vectorRotation('y',theta,up);
+        right=vectorRotation('y',theta,right);
+    }
+    void rotationZ(scalar_t theta)
+    {
+        p0=vectorRotation('z',theta,p0-central)+central;
+        p1=vectorRotation('z',theta,p1-central)+central;
+        p2=vectorRotation('z',theta,p2-central)+central;
+        p3=vectorRotation('z',theta,p3-central)+central;
+        normal=vectorRotation('z',theta,normal);
+        up=vectorRotation('z',theta,up);
+        right=vectorRotation('z',theta,right);
+    }
+    vector3<scalar_t> vectorRotation(unsigned char mode,scalar_t theta,vector3<scalar_t> v)
+    {
+        vector3<scalar_t> v_temp;
+        if('x'==mode)
+        {
+            v_temp.x=v.x;
+            v_temp.y=v.y*cos(theta)+v.z*sin(theta);
+            v_temp.z=v.z*cos(theta)-v.y*sin(theta);
+        }
+        else if('y'==mode)
+        {
+            v_temp.y=v.y;
+            v_temp.x=v.x*cos(theta)+v.z*sin(theta);
+            v_temp.z=v.z*cos(theta)-v.x*sin(theta);
+        }
+        else if('z'==mode)
+        {
+            v_temp.z=v.z;
+            v_temp.x=v.x*cos(theta)-v.y*sin(theta);
+            v_temp.y=v.y*cos(theta)+v.x*sin(theta);
+        }
+        else
+            v_temp=v;
+        return v_temp;
+    }
+    bool hit(vector3<scalar_t> e,
+             vector3<scalar_t> d,
+             scalar_t t0,
+             scalar_t t1,
+             IntersectionResult<scalar_t>& rec)
+    {
+        Ray<scalar_t> ray(e.normalize(),d.normalize());
+    }
+
+};
+
+template <typename scalar_t>
 class Camera
 {
 public:
@@ -123,10 +224,19 @@ class Light
 {
 public:
     vector3<scalar_t> direction;
-    scalar_t ambient;
+    //scalar_t ambient;
     explicit Light(vector3<scalar_t> d=vector3<scalar_t>(1,1,1));//against the direction light from
 };
 
+template <typename scalar_t>
+class PointLight
+{
+    vector3<scalar_t> position;
+    explicit PointLight(vector3<scalar_t> pos=vector3<scalar_t>(0,0,0))
+    {
+        position=pos;
+    }
+};
 
 //the data structure of object stored as linked list
 template <typename scalar_t>
@@ -184,9 +294,11 @@ public:
     surface_list<scalar_t> *objs;
     Camera<scalar_t> camera;
     int size;
+    int max_depth;
+    scalar_t ambient;
     Scence(int img_size,int batch1);
     ~Scence();
-    scalar_t IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction);
+    scalar_t IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction,int current_depth);
     Image<scalar_t> render();
 
 };
@@ -369,7 +481,7 @@ template <typename scalar_t>
 Light<scalar_t>::Light(vector3<scalar_t> d)//against the direction light from
 {
     this->direction=d.normalize();
-    this->ambient=0.15;
+    //this->ambient=0.15;
 }
 
 template <typename scalar_t>
@@ -527,7 +639,7 @@ Image<scalar_t>::~Image() {
 }
 
 template <typename scalar_t>
-scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scalar_t> direction)
+scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scalar_t> direction,int current_depth)
 {
     IntersectionResult<scalar_t> result;
     IntersectionResult<scalar_t> result1;
@@ -538,7 +650,7 @@ scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scal
     ishit=objs->hit(origin,direction,0,100,result);
     if(ishit)
     {
-        color+=light.ambient;
+        color+=ambient;
         //cout<<"hit"<<endl;
         //is in shadow?
         isinshadow=objs->hit(result.position,light.direction,0,100,result1);
@@ -547,10 +659,10 @@ scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scal
             ;
         }
         else
-            color+=max(0.0,0.8*result.normal.dot(light.direction.normalize()));
-        if(1==result.mtl)
+            color+=max(0.0,0.5*result.normal.dot(light.direction.normalize()));
+        if(1==result.mtl&&current_depth<max_depth)
         {
-            color+=0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal);
+            color+=0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal,current_depth+1);//reflection direction
         }
     }
     else
@@ -576,7 +688,7 @@ Image<scalar_t> Scence<scalar_t>::render()
             Ray<scalar_t> ray=camera.generateRay(u,v,size);
             //cout<<"here1"<<endl;
 
-            data[u*size+v]=IntersectColor(ray.origin,ray.direction);
+            data[u*size+v]=IntersectColor(ray.origin,ray.direction,0);
 
 
         }
@@ -596,6 +708,8 @@ Scence<scalar_t>::Scence(int img_size,int batch1)
     size=img_size;
     batch=batch1;
     objs=new surface_list<scalar_t>[batch];
+    max_depth=5;
+    ambient=0.1;
 }
 
 template <typename scalar_t>

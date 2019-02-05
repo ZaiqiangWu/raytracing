@@ -20,7 +20,7 @@ int main(int argc, char** argv )
     {
         for(int j=0;j<num_spheres;j++)
         {
-            scence.objs[i].append(vector3<float>(central_p[i*num_spheres*3+j*3],central_p[i*num_spheres*3+j*3+1],central_p[i*num_spheres*3+j*3+2]),radius_p[i*num_spheres+j],j);
+            scence.objs[i].append(vector3<float>(central_p[i*num_spheres*3+j*3],central_p[i*num_spheres*3+j*3+1],central_p[i*num_spheres*3+j*3+2]),radius_p[i*num_spheres+j],1);
         }
     }
     cout<<scence.objs[0].len<<endl;
