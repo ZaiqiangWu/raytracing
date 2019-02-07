@@ -8,6 +8,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <cmath>
+#include "color.h"
 #define min(a,b)  (((a)<(b))?(a):(b))
 #define max(a,b)  (((a)>(b))?(a):(b))
 
@@ -62,6 +63,7 @@ public:
     vector3<scalar_t> normal;
     vector3<scalar_t> position;
     int mtl;
+    vector3<scalar_t> texture_color;
     IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0),int mtl=0);
 };
 
@@ -114,7 +116,7 @@ public:
     vector3<scalar_t> p1;
     vector3<scalar_t> p2;
     vector3<scalar_t> p3;
-    explicit plane(scalar_t h=1.0, scalar_t w=1.0)
+    explicit rectangle(scalar_t h=1.0, scalar_t w=1.0)
     {
         central=vector3<scalar_t>(0,0,0);
         height=h;
@@ -330,7 +332,7 @@ public:
     scalar_t ambient;
     Scence(int img_size,int batch1);
     ~Scence();
-    scalar_t IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction,int current_depth);
+    vector3<scalar_t> IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction,int current_depth);
     Image<scalar_t> render();
 
 };
@@ -445,6 +447,7 @@ IntersectionResult<scalar_t>::IntersectionResult(scalar_t t,
     this->normal=normal;
     this->position=position;
     this->mtl=mtl;
+    texture_color=vector3<scalar_t>(1,1,1);
 }
 
 template <typename scalar_t>
@@ -671,7 +674,7 @@ Image<scalar_t>::~Image() {
 }
 
 template <typename scalar_t>
-scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scalar_t> direction,int current_depth)
+vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scalar_t> direction,int current_depth)
 {
     IntersectionResult<scalar_t> result;
     IntersectionResult<scalar_t> result1;
@@ -702,7 +705,7 @@ scalar_t Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vector3<scal
         color=0.0;
     }
 
-    return min(1.0,color);
+    return min(1.0,color)*result.texture_color;
 
 }
 
@@ -710,8 +713,9 @@ template <typename scalar_t>
 Image<scalar_t> Scence<scalar_t>::render()
 {
     //cv::Mat img(cv::Size(size,size),CV_32FC1);
-    Image<scalar_t> img(size,size,1);
+    Image<scalar_t> img(size,size,3);
     scalar_t *data=img.ptr();
+    vector3<scalar_t> pixel;
     for(int u=0;u<size;u++)
     {
         for(int v=0;v<size;v++)
@@ -719,10 +723,10 @@ Image<scalar_t> Scence<scalar_t>::render()
             //cout<<"here0"<<endl;
             Ray<scalar_t> ray=camera.generateRay(u,v,size);
             //cout<<"here1"<<endl;
-
-            data[u*size+v]=IntersectColor(ray.origin,ray.direction,0);
-
-
+            pixel=IntersectColor(ray.origin,ray.direction,0);
+            data[u*size*3+v*3+0]=pixel.x;
+            data[u*size*3+v*3+1]=pixel.y;
+            data[u*size*3+v*3+2]=pixel.z;
         }
     }
     return img;
