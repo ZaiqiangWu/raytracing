@@ -1,6 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "raytracing.h"
+//#include "color.h"
 
 
 using namespace cv;

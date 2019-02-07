@@ -8,7 +8,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <cmath>
-#include "color.h"
+//#include "color.h"
 #define min(a,b)  (((a)<(b))?(a):(b))
 #define max(a,b)  (((a)>(b))?(a):(b))
 
@@ -27,6 +27,14 @@ public:
     vector3 operator-(const vector3& v2);
 
     vector3 operator*(scalar_t v) const;
+    vector3 operator*(const vector3& v2) const
+    {
+        vector3 res;
+        res.x=x*v2.x;
+        res.y=y*v2.y;
+        res.z=z*v2.z;
+        return res;
+    }
     template <typename scalar_t1>
     friend vector3<scalar_t1> operator*(const scalar_t1 &v,const vector3<scalar_t1> &vec);
     vector3 operator/(scalar_t v) const;
@@ -678,14 +686,14 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
 {
     IntersectionResult<scalar_t> result;
     IntersectionResult<scalar_t> result1;
-    scalar_t color=0.0;
+    vector3<scalar_t> color(0,0,0);
     //cout<<"here2"<<endl;
     bool ishit;
     bool isinshadow;
     ishit=objs->hit(origin,direction,0,100,result);
     if(ishit)
     {
-        color+=ambient;
+        color=color+vector3<scalar_t>(ambient,ambient,ambient);
         //cout<<"hit"<<endl;
         //is in shadow?
         isinshadow=objs->hit(result.position,light.direction,0,100,result1);
@@ -694,18 +702,18 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
             ;
         }
         else
-            color+=max(0.0,0.5*result.normal.dot(light.direction.normalize()));
+            color=color+(0.0,0.5*result.normal.dot(light.direction.normalize()));
         if(1==result.mtl&&current_depth<max_depth)
         {
-            color+=0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal,current_depth+1);//reflection direction
+            color=color+(scalar_t)0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal,current_depth+1);//reflection direction
         }
     }
     else
     {
-        color=0.0;
+        color=vector3<scalar_t>(0,0,0);
     }
 
-    return min(1.0,color)*result.texture_color;
+    return color*result.texture_color;
 
 }
 
