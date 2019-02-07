@@ -196,7 +196,39 @@ public:
              scalar_t t1,
              IntersectionResult<scalar_t>& rec)
     {
-        Ray<scalar_t> ray(e.normalize(),d.normalize());
+        Ray<scalar_t> ray(e,d);
+        scalar_t D;
+        D=-normal.x*central.x-normal.y*central.y-normal.z*central.z;
+        scalar_t t_intersect;
+        t_intersect=-(normal.x*e.x+normal.y*e.y+normal.z*e.z+D)/(normal.x*d.x+normal.y*d.y+normal.z*d.z);
+        if(t_intersect<t0||t_intersect>t1)
+        {
+            return false;
+        }
+        vector3<scalar_t> point;
+        point=ray.getPoint(t_intersect);
+        vector3<scalar_t> v0,v1,v2,v3;
+        v0=p0-point;
+        v1=p1-point;
+        v2=p2-point;
+        v3=p3-point;
+        bool flag=true;
+        if(v3.cross(v0).dot(normal)<0)
+            flag=false;
+        if(v0.cross(v1).dot(normal)<0)
+            flag=false;
+        if(v1.cross(v2).dot(normal)<0)
+            flag=false;
+        if(v2.cross(v3).dot(normal)<0)
+            flag=false;
+        if(!flag)
+            return flag;
+        rec.normal=normal.normalize();
+        rec.position=point;
+        rec.mtl=0;
+        rec.t=t_intersect;
+        return flag;
+
     }
 
 };
