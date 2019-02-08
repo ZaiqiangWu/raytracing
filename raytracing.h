@@ -23,6 +23,29 @@ public:
     scalar_t z;
     vector3(scalar_t x=0,scalar_t y=0,scalar_t z=0);
     vector3 operator+(const vector3& v2);
+    vector3 operator+=(const vector3 &v2)
+    {
+        x=x+v2.x;
+        y=y+v2.y;
+        z=z+v2.z;
+        return *this;
+    }
+    vector3 operator-=(const vector3 &v2)
+    {
+        x=x-v2.x;
+        y=y-v2.y;
+        z=z-v2.z;
+        return *this;
+    }
+    vector3 clip(scalar_t low=0,scalar_t high=1)
+    {
+        vector3 tmp;
+        tmp.x=max(low,min(x,high));
+        tmp.y=max(low,min(y,high));
+        tmp.z=max(low,min(z,high));
+        return tmp;
+
+    }
 
     vector3 operator-(const vector3& v2);
 
