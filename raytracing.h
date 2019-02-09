@@ -8,65 +8,13 @@
 
 #include <opencv2/opencv.hpp>
 #include <cmath>
-//#include "color.h"
+#include "vector3.h"
+#include "color.h"
 #define min(a,b)  (((a)<(b))?(a):(b))
 #define max(a,b)  (((a)>(b))?(a):(b))
+#define eps 1e-5
 
 
-
-template <typename scalar_t>
-class vector3
-{
-public:
-    scalar_t x;
-    scalar_t y;
-    scalar_t z;
-    vector3(scalar_t x=0,scalar_t y=0,scalar_t z=0);
-    vector3 operator+(const vector3& v2);
-    vector3 operator+=(const vector3 &v2)
-    {
-        x=x+v2.x;
-        y=y+v2.y;
-        z=z+v2.z;
-        return *this;
-    }
-    vector3 operator-=(const vector3 &v2)
-    {
-        x=x-v2.x;
-        y=y-v2.y;
-        z=z-v2.z;
-        return *this;
-    }
-    vector3 clip(scalar_t low=0,scalar_t high=1)
-    {
-        vector3 tmp;
-        tmp.x=max(low,min(x,high));
-        tmp.y=max(low,min(y,high));
-        tmp.z=max(low,min(z,high));
-        return tmp;
-
-    }
-
-    vector3 operator-(const vector3& v2);
-
-    vector3 operator*(scalar_t v) const;
-    vector3 operator*(const vector3& v2) const
-    {
-        vector3 res;
-        res.x=x*v2.x;
-        res.y=y*v2.y;
-        res.z=z*v2.z;
-        return res;
-    }
-    template <typename scalar_t1>
-    friend vector3<scalar_t1> operator*(const scalar_t1 &v,const vector3<scalar_t1> &vec);
-    vector3 operator/(scalar_t v) const;
-    scalar_t dot(const vector3& v2);
-    vector3 cross(const vector3& v2);
-    scalar_t length();
-    scalar_t squareLength();
-    vector3 normalize();
-};
 
 template <typename scalar_t>
 class Box
@@ -95,7 +43,7 @@ public:
     vector3<scalar_t> position;
     int mtl;
     vector3<scalar_t> texture_color;
-    IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0),int mtl=0);
+    explicit IntersectionResult(scalar_t t=0,vector3<scalar_t> normal=vector3<scalar_t>(0,0,0),vector3<scalar_t> position=vector3<scalar_t>(0,0,0),int mtl=0);
 };
 
 template <typename scalar_t>
@@ -155,10 +103,10 @@ public:
         normal=vector3<scalar_t>(0,0,1);
         up=vector3<scalar_t>(0,1,0);
         right=vector3<scalar_t>(1,0,0);
-        p0=central+0.5*height*up-0.5*width*right;
-        p1=central-0.5*height*up-0.5*width*right;
-        p2=central-0.5*height*up+0.5*width*right;
-        p3=central+0.5*height*up+0.5*width*right;
+        p0=central+(scalar_t)0.5*height*up-(scalar_t)0.5*width*right;
+        p1=central-(scalar_t)0.5*height*up-(scalar_t)0.5*width*right;
+        p2=central-(scalar_t)0.5*height*up+(scalar_t)0.5*width*right;
+        p3=central+(scalar_t)0.5*height*up+(scalar_t)0.5*width*right;
     }
     void translate(scalar_t x,scalar_t y,scalar_t z)
     {
@@ -234,7 +182,7 @@ public:
         D=-normal.x*central.x-normal.y*central.y-normal.z*central.z;
         scalar_t t_intersect;
         t_intersect=-(normal.x*e.x+normal.y*e.y+normal.z*e.z+D)/(normal.x*d.x+normal.y*d.y+normal.z*d.z);
-        if(t_intersect<t0||t_intersect>t1)
+        if(t_intersect<t0+(scalar_t)eps||t_intersect>t1-(scalar_t)eps)
         {
             return false;
         }
@@ -261,9 +209,7 @@ public:
         rec.mtl=0;
         rec.t=t_intersect;
         return flag;
-
     }
-
 };
 
 template <typename scalar_t>
@@ -310,7 +256,7 @@ class surface_node
 public:
     surface<scalar_t> *object;
     surface_node<scalar_t> *next_surface;
-    surface_node(vector3<scalar_t> central,scalar_t radius,int mtl=0);
+    surface_node();
     ~surface_node();
 };
 
@@ -325,7 +271,7 @@ public:
     ~surface_list();
     void free_memory(surface_node<scalar_t> *p);
 
-    void append(vector3<scalar_t> central,scalar_t radius,int mtl=0);
+    void append(surface<scalar_t> *obj);
 
     bool hit(vector3<scalar_t> e,
              vector3<scalar_t> d,
@@ -355,98 +301,18 @@ class Scence
 {
 public:
     Light<scalar_t> light;
-    int batch;
-    surface_list<scalar_t> *objs;
+    surface_list<scalar_t> objs;
     Camera<scalar_t> camera;
     int size;
     int max_depth;
     scalar_t ambient;
-    Scence(int img_size,int batch1);
+    Scence(int img_size);
     ~Scence();
     vector3<scalar_t> IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction,int current_depth);
     Image<scalar_t> render();
 
 };
 
-template <typename scalar_t>
-vector3<scalar_t>::vector3(scalar_t x, scalar_t y, scalar_t z) {
-    this->x=x;
-    this->y=y;
-    this->z=z;
-}
-
-template <typename scalar_t>
-vector3<scalar_t> vector3<scalar_t>::operator+(const vector3<scalar_t>& v2)
-{
-    vector3 res;
-    res.x=this->x+v2.x;
-    res.y=this->y+v2.y;
-    res.z=this->z+v2.z;
-    return res;
-}
-
-template <typename scalar_t>
-vector3<scalar_t> vector3<scalar_t>::operator-(const vector3<scalar_t>& v2)
-{
-    vector3 res;
-    res.x=this->x-v2.x;
-    res.y=this->y-v2.y;
-    res.z=this->z-v2.z;
-    return res;
-}
-
-template <typename scalar_t>
-vector3<scalar_t> vector3<scalar_t>::operator*(scalar_t v) const //表示这个函数只有读的操作，没有写操作，不允许函数改变成员变量的值
-{
-    return vector3(v*x,v*y,v*z);
-}
-
-template <typename scalar_t1>
-vector3<scalar_t1> operator*(const scalar_t1 &v,const vector3<scalar_t1> &vec)
-{
-    return vec*v;
-}
-
-template <typename scalar_t>
-vector3<scalar_t> vector3<scalar_t>:: operator/(scalar_t v) const
-{
-    return vector3(x/v,y/v,z/v);
-}
-
-template <typename scalar_t>
-scalar_t vector3<scalar_t>::dot(const vector3& v2)
-{
-    return this->x*v2.x+this->y*v2.y+this->z*v2.z;
-}
-
-template <typename scalar_t>
-vector3<scalar_t> vector3<scalar_t>::cross(const vector3<scalar_t> &v2)
-{
-    vector3 res;
-    res.x=this->y*v2.z-this->z*v2.y;
-    res.y=this->z*v2.x-this->x*v2.z;
-    res.z=this->x*v2.y-this->y*v2.x;
-    return res;
-}
-
-template <typename scalar_t>
-scalar_t vector3<scalar_t>::squareLength()
-{
-    return x*x+y*y+z*z;
-}
-
-template <typename scalar_t>
-scalar_t vector3<scalar_t>::length()
-{
-    return sqrt(x*x+y*y+z*z);
-}
-
-template <typename scalar_t>
-vector3<scalar_t> vector3<scalar_t>::normalize()
-{
-    scalar_t invlen=1/length();
-    return *this*invlen;
-}
 
 template <typename scalar_t>
 Box<scalar_t>::Box(vector3<scalar_t> min,vector3<scalar_t> max)
@@ -551,16 +417,16 @@ Light<scalar_t>::Light(vector3<scalar_t> d)//against the direction light from
 }
 
 template <typename scalar_t>
-surface_node<scalar_t>::surface_node(vector3<scalar_t> central,scalar_t radius,int mtl)
+surface_node<scalar_t>::surface_node()
 {
-    object=new sphere<scalar_t>(central,radius,mtl);
+    object=NULL;
     next_surface=NULL;
 }
 
 template <typename scalar_t>
 surface_node<scalar_t>::~surface_node()
 {
-    delete object;
+    ;
 }
 
 template <typename scalar_t>
@@ -595,17 +461,19 @@ void surface_list<scalar_t>::free_memory(surface_node<scalar_t> *p)
 }
 
 template <typename scalar_t>
-void surface_list<scalar_t>::append(vector3<scalar_t> central,scalar_t radius,int mtl)
+void surface_list<scalar_t>::append(surface<scalar_t> *obj)
 {
     len++;
     if(p_head==NULL)
     {
-        p_head=new surface_node<scalar_t>(central,radius,mtl);
+        p_head=new surface_node<scalar_t>;
+        p_head->object=obj;
         p_end=p_head;
     }
     else
     {
-        p_end->next_surface=new surface_node<scalar_t>(central,radius,mtl);
+        p_end->next_surface=new surface_node<scalar_t>;
+        p_end->next_surface->object=obj;
         p_end=p_end->next_surface;
     }
 }
@@ -713,22 +581,22 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
     //cout<<"here2"<<endl;
     bool ishit;
     bool isinshadow;
-    ishit=objs->hit(origin,direction,0,100,result);
+    ishit=objs.hit(origin,direction,0,100,result);
     if(ishit)
     {
-        color=color+vector3<scalar_t>(ambient,ambient,ambient);
+        color+=vector3<scalar_t>(ambient,ambient,ambient);
         //cout<<"hit"<<endl;
         //is in shadow?
-        isinshadow=objs->hit(result.position,light.direction,0,100,result1);
+        isinshadow=objs.hit(result.position,light.direction,0,100,result1);
         if(isinshadow)
         {
             ;
         }
         else
-            color=color+(0.0,0.5*result.normal.dot(light.direction.normalize()));
+            color+=vector3<scalar_t>(1,1,1)*max(0.0,0.5*result.normal.dot(light.direction.normalize()));
         if(1==result.mtl&&current_depth<max_depth)
         {
-            color=color+(scalar_t)0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal,current_depth+1);//reflection direction
+            color+=(scalar_t)0.1*IntersectColor(result.position,direction-2*direction.dot(result.normal)*result.normal,current_depth+1);//reflection direction
         }
     }
     else
@@ -770,11 +638,9 @@ scalar_t* Image<scalar_t>::ptr()
 }
 
 template <typename scalar_t>
-Scence<scalar_t>::Scence(int img_size,int batch1)
+Scence<scalar_t>::Scence(int img_size)
 {
     size=img_size;
-    batch=batch1;
-    objs=new surface_list<scalar_t>[batch];
     max_depth=5;
     ambient=0.1;
 }
@@ -782,7 +648,7 @@ Scence<scalar_t>::Scence(int img_size,int batch1)
 template <typename scalar_t>
 Scence<scalar_t>::~Scence()
 {
-    delete [] objs;
+    ;
 }
 #endif //DISPLAYIMAGE_RAYTRACING_H
 

@@ -4,33 +4,33 @@
 //#include "color.h"
 
 
-using namespace cv;
+//using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv )
 {
-    int batch=1;
-    const int num_spheres=2;
+    const int num_spheres=1;
     int size=1024;
 
-    Scence<float> scence(size,batch);
+    Scence<float> scence(size);
 
-    float central_p[3*num_spheres]={-0.9,0.0,-0.0,0.5,0.0,0.0};
-    float radius_p[num_spheres]={0.6,0.6};
-    for(int i=0;i<batch;i++)
-    {
-        for(int j=0;j<num_spheres;j++)
-        {
-            scence.objs[i].append(vector3<float>(central_p[i*num_spheres*3+j*3],central_p[i*num_spheres*3+j*3+1],central_p[i*num_spheres*3+j*3+2]),radius_p[i*num_spheres+j],1);
-        }
-    }
-    cout<<scence.objs[0].len<<endl;
-    cv::Mat image(cv::Size(size,size),CV_32FC1);
+    float central_p[3*num_spheres]={-0.9,0.0,-0.0};
+    float radius_p[num_spheres]={0.6};
+    sphere<float> sp0(vector3<float>(-0.9,0.0,-0.0),0.6,1);
+    rectangle<float> rec0(1,2);
+    rec0.rotationY(-0.6);
+
+    scence.objs.append(&sp0);
+    scence.objs.append(&rec0);
+
+
+    cout<<scence.objs.len<<endl;
+    //cv::Mat image(cv::Size(size,size),CV_32FC1);
     //Image<float> img=scence.render();
-    namedWindow("Display Image", WINDOW_AUTOSIZE );
-    imshow("Display Image", scence.render().GetOpencvMat());
+    cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE );
+    cv::imshow("Display Image", scence.render().GetOpencvMat());
 
-    waitKey(0);
+    cv::waitKey(0);
 
     return 0;
 }
