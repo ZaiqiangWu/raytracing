@@ -95,6 +95,7 @@ public:
     vector3<scalar_t> p1;
     vector3<scalar_t> p2;
     vector3<scalar_t> p3;
+
     explicit rectangle(scalar_t h=1.0, scalar_t w=1.0)
     {
         central=vector3<scalar_t>(0,0,0);
@@ -171,7 +172,7 @@ public:
             v_temp=v;
         return v_temp;
     }
-    bool hit(vector3<scalar_t> e,
+    virtual bool hit(vector3<scalar_t> e,
              vector3<scalar_t> d,
              scalar_t t0,
              scalar_t t1,
@@ -370,7 +371,7 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
     if(dis2c<this->radius)
     {
         rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
-        if(rec.t<t0||rec.t>t1)
+        if(rec.t<t0+(scalar_t)eps||rec.t>t1-(scalar_t)eps)
             return false;
         rec.t=rec.t/d.squareLength();
         Ray<scalar_t> ray(e,d);
