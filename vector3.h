@@ -4,6 +4,8 @@
 
 #ifndef DISPLAYIMAGE_VECTOR3_H
 #define DISPLAYIMAGE_VECTOR3_H
+#define min(a,b)  (((a)<(b))?(a):(b))
+#define max(a,b)  (((a)>(b))?(a):(b))
 template <typename scalar_t>
 class vector3
 {
@@ -33,6 +35,14 @@ public:
         tmp.x=max(low,min(x,high));
         tmp.y=max(low,min(y,high));
         tmp.z=max(low,min(z,high));
+        return tmp;
+    }
+    vector3 negative()
+    {
+        vector3 tmp;
+        tmp.x=-x;
+        tmp.y=-y;
+        tmp.z=-z;
         return tmp;
     }
     void clip_(scalar_t low=0,scalar_t high=1)
