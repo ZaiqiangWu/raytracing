@@ -369,9 +369,20 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
     vector3<scalar_t> dis=this->center-e;
     scalar_t projection=dis.dot(d.normalize());
     scalar_t dis2c=sqrt(dis.length()*dis.length()-projection*projection);
+    scalar_t t_1,t_2;
     if(dis2c<this->radius)
     {
-        rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
+        //todo rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
+        t_1=(projection-sqrt(radius*radius-dis2c*dis2c))/d.length();
+        t_2=(projection+sqrt(radius*radius-dis2c*dis2c))/d.length();
+        if(dis.length()<radius+(scalar_t)eps)
+        {
+            rec.t=max(t_1,t_2);
+        }
+        else
+        {
+            rec.t=min(t_1,t_2);
+        }
         if(rec.t<t0+(scalar_t)eps||rec.t>t1-(scalar_t)eps)
             return false;
         rec.t=rec.t/d.squareLength();
@@ -581,32 +592,79 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
     IntersectionResult<scalar_t> result1;
     vector3<scalar_t> color(0,0,0);
     vector3<scalar_t> reflection;
+    vector3<scalar_t> refraction;
     //cout<<"here2"<<endl;
     bool ishit;
     bool isinshadow;
     ishit=objs.hit(origin,direction,0,100,result);
     if(ishit)
     {
-        color+=vector3<scalar_t>(ambient,ambient,ambient);
-        //cout<<"hit"<<endl;
-        //is in shadow?
 
-        isinshadow=objs.hit(result.position,light.direction,0,100,result1);
-        if(isinshadow)
-        {
-            ;
-        }
-        else
-            color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
         if(1==result.mtl&&current_depth<max_depth)
         {
             reflection=(direction-2*direction.dot(result.normal)*result.normal).normalize();
-            color+=(scalar_t)0.1*IntersectColor(result.position,reflection,current_depth+1);//reflection direction
+            color+=(scalar_t)0.95*IntersectColor(result.position,reflection,current_depth+1);//reflection direction
+        }
+        else if(-1==result.mtl&&current_depth<max_depth)
+        {
+            refraction=(direction-2*direction.dot(result.normal)*result.normal).normalize();
+            if(direction.dot(result.normal)<0)
+            {
+                //from outside to inside
+
+                vector3<scalar_t> vertical=direction.dot(result.normal.normalize())*result.normal.normalize();
+                vector3<scalar_t> horizontal=direction-vertical;
+                scalar_t theta1=asin(direction.normalize().cross(result.normal.normalize()).length());
+                scalar_t theta2=asin(sin(theta1)/1.02);
+                refraction=horizontal+vertical*(tan(theta1)/tan(theta2));
+                //refraction=direction;
+            }
+            else
+            {
+                if(direction.normalize().cross(result.normal.normalize()).length()>(1/1.02))
+                {
+                    return vector3<scalar_t>(0,0,0);
+                }
+                else
+                {
+                    vector3<scalar_t> vertical=direction.dot(result.normal.normalize())*result.normal.normalize();
+                    vector3<scalar_t> horizontal=direction-vertical;
+                    scalar_t theta1=asin(direction.normalize().cross(result.normal.normalize()).length());
+                    scalar_t theta2=asin(sin(theta1)*1.02);
+                    refraction=horizontal+vertical*(tan(theta1)/tan(theta2));
+                    //refraction=direction;
+                }
+                //refraction=(direction-2*direction.dot(result.normal)*result.normal).normalize();
+            }
+            color+=(scalar_t)0.95*IntersectColor(result.position,refraction,current_depth+1);//reflection direction
+        }
+        else
+        {
+            color+=vector3<scalar_t>(ambient,ambient,ambient);
+            //cout<<"hit"<<endl;
+            //is in shadow?
+
+            isinshadow=objs.hit(result.position,light.direction,0,100,result1);
+            if(isinshadow&&result1.mtl>=0)
+            {
+                ;
+            }
+            else
+                color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
         }
     }
     else
     {
-        color=vector3<scalar_t>(0,0,0);
+       color=vector3<scalar_t>(0,0,0);
+       /*if(current_depth==0)
+           color=vector3<scalar_t>(0,0,0);
+        if(current_depth==1)
+            color=vector3<scalar_t>(1,0,0);
+        if(current_depth==2)
+            color=vector3<scalar_t>(0,1,0);
+        if(current_depth==3)
+            color=vector3<scalar_t>(0,0,1);*/
+
     }
 
     return (color*result.texture_color).clip();

@@ -70,6 +70,10 @@ public:
         {
             rec.texture_color=vector3<scalar_t>(0,0,0);
         }
+        /*if(((int)(u*10)<=2)&&((int)(v*10)<=2))
+        {
+            rec.texture_color=vector3<scalar_t>(0,0,1);//for test
+        }*/
         return flag;
     }
     void get_UV(vector3<scalar_t> p,scalar_t &U,scalar_t &V)
