@@ -590,16 +590,17 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
         color+=vector3<scalar_t>(ambient,ambient,ambient);
         //cout<<"hit"<<endl;
         //is in shadow?
-        reflection=(direction-2*direction.dot(result.normal)*result.normal).normalize();
+
         isinshadow=objs.hit(result.position,light.direction,0,100,result1);
         if(isinshadow)
         {
             ;
         }
         else
-            color+=vector3<scalar_t>(1,1,1)*max(0.0,0.5*result.normal.dot(light.direction.normalize())+0.1*max(0,pow((light.direction.negative()-2*light.direction.negative().dot(result.normal)*result.normal).normalize().dot(direction),50)));
+            color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
         if(1==result.mtl&&current_depth<max_depth)
         {
+            reflection=(direction-2*direction.dot(result.normal)*result.normal).normalize();
             color+=(scalar_t)0.1*IntersectColor(result.position,reflection,current_depth+1);//reflection direction
         }
     }
