@@ -153,8 +153,8 @@ public:
         if('x'==mode)
         {
             v_temp.x=v.x;
-            v_temp.y=v.y*cos(theta)+v.z*sin(theta);
-            v_temp.z=v.z*cos(theta)-v.y*sin(theta);
+            v_temp.y=v.y*cos(theta)-v.z*sin(theta);
+            v_temp.z=v.z*cos(theta)+v.y*sin(theta);
         }
         else if('y'==mode)
         {
@@ -310,7 +310,7 @@ public:
     Scence(int img_size);
     ~Scence();
     vector3<scalar_t> IntersectColor(vector3<scalar_t> origin,vector3<scalar_t> direction,int current_depth);
-    //vector3<scalar_t> LocalIllumination(vector3<scalar_t> N,vector3<scalar_t> L,vector3<scalar_t> V);
+    scalar_t HighLight(vector3<scalar_t> normal,vector3<scalar_t> tolight,vector3<scalar_t> view);
     Image<scalar_t> render();
 
 };
@@ -650,7 +650,8 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
                 ;
             }
             else
-                color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
+                //color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
+                color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*HighLight(result.normal,light.direction,direction));
         }
     }
     else
@@ -671,12 +672,13 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
 
 }
 
-/*template <typename scalar_t>
-vector3<scalar_t> Scence<scalar_t>::LocalIllumination(vector3<scalar_t> N,vector3<scalar_t> L,vector3<scalar_t> V)
+template <typename scalar_t>
+scalar_t Scence<scalar_t>::HighLight(vector3<scalar_t> normal,vector3<scalar_t> tolight,vector3<scalar_t> view)
 {
-    vector3<scalar_t> reflection=(V-2*V.dot(N)*N).normalize();
-    0.5*N.dot(light.direction.normalize())-0.3*pow(reflection.dot(V),5);
-}*/
+    vector3<scalar_t> lightfrom=tolight.negative();
+    vector3<scalar_t> reflection=(lightfrom-2*lightfrom.dot(normal)*normal).normalize();
+    return pow(max(0,((light.direction-2*light.direction.dot(normal)*normal).normalize().dot(view))),8);
+}
 
 template <typename scalar_t>
 Image<scalar_t> Scence<scalar_t>::render()
