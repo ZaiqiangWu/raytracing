@@ -10,8 +10,9 @@
 #include <cmath>
 #include "vector3.h"
 #include "color.h"
-#define min(a,b)  (((a)<(b))?(a):(b))
-#define max(a,b)  (((a)>(b))?(a):(b))
+//#include<algorithm>
+//#define min(a,b)  (((a)<(b))?(a):(b))
+//#define max(a,b)  (((a)>(b))?(a):(b))
 #define eps 1e-5
 
 
@@ -377,11 +378,11 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
         t_2=(projection+sqrt(radius*radius-dis2c*dis2c))/d.length();
         if(dis.length()<radius+(scalar_t)eps)
         {
-            rec.t=max(t_1,t_2);
+            rec.t=MAX(t_1,t_2);
         }
         else
         {
-            rec.t=min(t_1,t_2);
+            rec.t=MIN(t_1,t_2);
         }
         if(rec.t<t0+(scalar_t)eps||rec.t>t1-(scalar_t)eps)
             return false;
@@ -651,7 +652,7 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
             }
             else
                 //color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
-                color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*HighLight(result.normal,light.direction,direction));
+                color+=vector3<scalar_t>(1,1,1)*(MAX(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*HighLight(result.normal,light.direction,direction));
         }
     }
     else
@@ -677,7 +678,7 @@ scalar_t Scence<scalar_t>::HighLight(vector3<scalar_t> normal,vector3<scalar_t> 
 {
     vector3<scalar_t> lightfrom=tolight.negative();
     vector3<scalar_t> reflection=(lightfrom-2*lightfrom.dot(normal)*normal).normalize();
-    return pow(max(0,((light.direction-2*light.direction.dot(normal)*normal).normalize().dot(view))),8);
+    return pow(MAX(0,((light.direction-2*light.direction.dot(normal)*normal).normalize().dot(view))),8);
 }
 
 template <typename scalar_t>
