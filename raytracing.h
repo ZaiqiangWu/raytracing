@@ -13,7 +13,7 @@
 //#include<algorithm>
 //#define min(a,b)  (((a)<(b))?(a):(b))
 //#define max(a,b)  (((a)>(b))?(a):(b))
-#define eps 1e-5
+
 
 
 
@@ -184,7 +184,7 @@ public:
         D=-normal.x*central.x-normal.y*central.y-normal.z*central.z;
         scalar_t t_intersect;
         t_intersect=-(normal.x*e.x+normal.y*e.y+normal.z*e.z+D)/(normal.x*d.x+normal.y*d.y+normal.z*d.z);
-        if(t_intersect<t0+(scalar_t)eps||t_intersect>t1-(scalar_t)eps)
+        if(t_intersect<t0+(scalar_t)eps_t||t_intersect>t1-(scalar_t)eps_t)
         {
             return false;
         }
@@ -376,7 +376,7 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
         //todo rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
         t_1=(projection-sqrt(radius*radius-dis2c*dis2c))/d.length();
         t_2=(projection+sqrt(radius*radius-dis2c*dis2c))/d.length();
-        if(dis.length()<radius+(scalar_t)eps)
+        if(dis.length()<radius+(scalar_t)eps_t)
         {
             rec.t=MAX(t_1,t_2);
         }
@@ -384,7 +384,7 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
         {
             rec.t=MIN(t_1,t_2);
         }
-        if(rec.t<t0+(scalar_t)eps||rec.t>t1-(scalar_t)eps)
+        if(rec.t<t0+(scalar_t)eps_t||rec.t>t1-(scalar_t)eps_t)
             return false;
         rec.t=rec.t/d.squareLength();
         Ray<scalar_t> ray(e,d);

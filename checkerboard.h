@@ -34,7 +34,7 @@ public:
         D=-this->normal.x*this->central.x-this->normal.y*this->central.y-this->normal.z*this->central.z;
         scalar_t t_intersect;
         t_intersect=-(this->normal.x*e.x+this->normal.y*e.y+this->normal.z*e.z+D)/(this->normal.x*d.x+this->normal.y*d.y+this->normal.z*d.z);
-        if(t_intersect<t0+(scalar_t)eps||t_intersect>t1-(scalar_t)eps)
+        if(t_intersect<t0+(scalar_t)eps_t||t_intersect>t1-(scalar_t)eps_t)
         {
             return false;
         }

@@ -11,6 +11,9 @@
 #ifndef MAX
 #define MAX(a,b)  (((a)>(b))?(a):(b))
 #endif
+#ifndef eps_t
+#define eps_t 1e-5
+#endif
 
 template <typename scalar_t>
 class vector3

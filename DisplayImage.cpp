@@ -11,9 +11,9 @@ using namespace std;
 
 int main(int argc, char** argv )
 {
-    int size=200;
+    int size=80;
     Scence<float> scence(size);
-    sphere<float> sp0(vector3<float>(0.0f,0.0,-0.3f),0.3,0);
+    sphere<float> sp0(vector3<float>(0.0f,0.0,-0.3f),1,0);
     checkerboard<float> rec0(2,2);
     TriangleMesh<float> mesh;
     mesh.LoadPly("../cgmodels/bunny.ply");
@@ -21,6 +21,7 @@ int main(int argc, char** argv )
     rec0.rotationX(-1.2f);
     //scence.objs.append(&sp0);
     //scence.objs.append(&rec0);
+    cout<<mesh.aabb.z_min<<" "<<mesh.aabb.z_max<<endl;
     scence.objs.append(&mesh);
     cout<<scence.objs.len<<endl;
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE );

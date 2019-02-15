@@ -12,6 +12,7 @@
 #include "triangle.h"
 #include <math.h>
 #include <string>
+#include "aabb.h"
 using namespace std;
 template <typename scalar_t>
 class TriangleMesh:public surface<scalar_t>
@@ -19,6 +20,7 @@ class TriangleMesh:public surface<scalar_t>
 public:
     int num_vetices;
     int num_faces;
+    AABB<scalar_t> aabb;
     vector3<scalar_t> *vertices;
     int *faces;
     Triangle<scalar_t> *triangles;
@@ -168,6 +170,33 @@ public:
         {
             triangles[k].set_vertices(&vertices[faces[k*3+0]],&vertices[faces[k*3+1]],&vertices[faces[k*3+2]]);
         }
+        for(int k=0;k<this->num_vetices;k++)
+        {
+            if(vertices[k].x<aabb.x_min)
+            {
+                aabb.x_min=vertices[k].x;
+            }
+            if(vertices[k].x>aabb.x_max)
+            {
+                aabb.x_max=vertices[k].x;
+            }
+            if(vertices[k].y<aabb.y_min)
+            {
+                aabb.y_min=vertices[k].y;
+            }
+            if(vertices[k].y>aabb.y_max)
+            {
+                aabb.y_max=vertices[k].y;
+            }
+            if(vertices[k].z<aabb.z_min)
+            {
+                aabb.z_min=vertices[k].z;
+            }
+            if(vertices[k].z>aabb.z_max)
+            {
+                aabb.z_max=vertices[k].z;
+            }
+        }
     }
     bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)
     {
@@ -176,13 +205,19 @@ public:
         {
             return false;
         }
+        else if(!aabb.ishit(e,d))
+        {
+            return false;
+        }
         else
         {
-            scalar_t t_min=10000;
+            scalar_t t_min=1000;
             IntersectionResult<scalar_t> result_temp;
+            bool is_hit;
             for(int i=0;i<this->num_faces;i++)
             {
-                if(triangles[i].ishit(e,d,t0,t1,result_temp))
+                is_hit=triangles[i].ishit(e,d,t0,t1,result_temp);
+                if(is_hit)
                 {
                     flag=true;
                     if(result_temp.t<t_min)
@@ -191,11 +226,14 @@ public:
                         rec=result_temp;
                     }
                 }
-                if(flag)
-                {
-                    rec.mtl=0;//todo
-                }
+
             }
+            if(flag)
+            {
+                rec.mtl=0;//todo
+            }
+            if(!flag)
+                cout<<"aa"<<endl;
             return flag;
         }
     }

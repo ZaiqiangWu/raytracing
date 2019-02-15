@@ -7,6 +7,8 @@
 
 #include "vector3.h"
 #include "raytracing.h"
+#include <iostream>
+using namespace std;
 template <typename scalar_t>
 class Triangle
 {
@@ -41,7 +43,7 @@ public:
         D=-normal.x*central.x-normal.y*central.y-normal.z*central.z;
         scalar_t t_intersect;
         t_intersect=-(normal.x*e.x+normal.y*e.y+normal.z*e.z+D)/(normal.x*d.x+normal.y*d.y+normal.z*d.z);
-        if(t_intersect<t0+(scalar_t)eps||t_intersect>t1-(scalar_t)eps)
+        if(t_intersect<t0+(scalar_t)eps_t||t_intersect>t1-(scalar_t)eps_t)
         {
             return false;
         }
@@ -52,17 +54,22 @@ public:
         v1=*p1-point;
         v2=*p2-point;
         bool flag=true;
-        if(v0.cross(v1).dot(normal)<0-eps)
+        if(v0.cross(v1).dot(normal)<0)
             flag=false;
-        if(v1.cross(v2).dot(normal)<0-eps)
+        if(v1.cross(v2).dot(normal)<0)
             flag=false;
-        if(v2.cross(v0).dot(normal)<0-eps)
+        if(v2.cross(v0).dot(normal)<0)
             flag=false;
         if(!flag)
+        {
+            //cout<<"nothit"<<endl;
             return flag;
+        }
         rec.normal=normal.normalize();
         rec.position=point;
         rec.t=t_intersect;
+        //cout<<"hit"<<endl;
+
         return flag;
     }
 };
