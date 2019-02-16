@@ -373,7 +373,7 @@ bool sphere<scalar_t>::hit(vector3<scalar_t> e,
     scalar_t t_1,t_2;
     if(dis2c<this->radius)
     {
-        //todo rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
+        //rec.t=-d.dot(e-center)-sqrt((d.dot(e-center))*(d.dot(e-center))-d.dot(d)*((e-center).squareLength()-radius*radius));
         t_1=(projection-sqrt(radius*radius-dis2c*dis2c))/d.length();
         t_2=(projection+sqrt(radius*radius-dis2c*dis2c))/d.length();
         if(dis.length()<radius+(scalar_t)eps_t)
@@ -645,7 +645,8 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
             //cout<<"hit"<<endl;
             //is in shadow?
 
-            isinshadow=objs.hit(result.position,light.direction,0,100,result1);
+            //isinshadow=objs.hit(result.position,light.direction,0,100,result1);todo
+            isinshadow= false;
             if(isinshadow&&result1.mtl>=0)
             {
                 ;

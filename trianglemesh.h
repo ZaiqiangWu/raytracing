@@ -22,6 +22,7 @@ public:
     int num_faces;
     AABB<scalar_t> aabb;
     vector3<scalar_t> *vertices;
+    vector3<scalar_t> central;
     int *faces;
     Triangle<scalar_t> *triangles;
     TriangleMesh()
@@ -32,7 +33,35 @@ public:
         vertices=NULL;
         faces=NULL;
         triangles=NULL;
+        central=vector3<scalar_t>(0,0,0);
 
+    }
+    void Scale(scalar_t scale)
+    {
+        for(int i=0;i<num_vetices;i++)
+        {
+            vertices[i]=(vertices[i]-central)*scale+central;
+        }
+        aabb.x_min=(aabb.x_min-central.x)*scale+central.x;
+        aabb.x_max=(aabb.x_max-central.x)*scale+central.x;
+        aabb.y_min=(aabb.y_min-central.y)*scale+central.y;
+        aabb.y_max=(aabb.y_max-central.y)*scale+central.y;
+        aabb.z_min=(aabb.z_min-central.z)*scale+central.z;
+        aabb.z_max=(aabb.z_max-central.z)*scale+central.z;
+    }
+    void Translate(vector3<scalar_t> t)
+    {
+        for(int i=0;i<num_vetices;i++)
+        {
+            vertices[i]=vertices[i]+t;
+        }
+        central=central+t;
+        aabb.x_min+=t.x;
+        aabb.x_max+=t.x;
+        aabb.y_min+=t.y;
+        aabb.y_max+=t.y;
+        aabb.z_min+=t.z;
+        aabb.z_max+=t.z;
     }
     void LoadPly(char *file_name)
     {
@@ -48,6 +77,8 @@ public:
         string str;
         int vertex, face;
         char ch;
+        int num_property=0;
+        bool start_count=false;
         /*讀取header*/
 
         while ( !fin.eof ( ) )
@@ -62,6 +93,7 @@ public:
                 //取得vertex個數
                 if(str == "vertex")
                 {
+                    start_count=true;
                     str.clear ( );
                     getline ( fin, str, '\n' );
                     vertex = atoi(str.c_str());
@@ -69,9 +101,15 @@ public:
                     //取得face個數
                 else if(str == "face")
                 {
+                    start_count=false;
                     str.clear ( );
                     getline ( fin, str, '\n' );
                     face = atoi(str.c_str());
+                }
+                else if((str == "float32"||str == "float64")&&start_count)
+                {
+                    str.clear ( );
+                    num_property++;
                 }
                 else if(str == "end_header")
                 {
@@ -106,29 +144,37 @@ public:
 
             else
             {
+
+                //cout<<"num_property:"<<num_property<<endl;
                 if(counter == vertex)	break;
                 /*儲存vertex資料*/
                 if(str == "")	continue;
 
-                else if(pos%3 == 0)
+                else if(pos%num_property == 0)
                 {
                     number = atof(str.c_str());
                     //vertex_arrayX[counter] = number;
                     this->vertices[counter].x=number;
                     str.clear ( );
                 }
-                else if(pos%3 == 1)
+                else if(pos%num_property == 1)
                 {
                     number = atof(str.c_str());
                     //vertex_arrayY[counter] = number;
                     this->vertices[counter].y=number;
                     str.clear ( );
                 }
-                else if(pos%3 == 2)
+                else if(pos%num_property == 2)
                 {
                     number = atof(str.c_str());
                     //vertex_arrayZ[counter] = number;
                     this->vertices[counter].z=number;
+                    str.clear ( );
+                    //counter++;
+                }
+                else if(pos%num_property == 4)
+                {
+
                     str.clear ( );
                     counter++;
                 }
@@ -232,8 +278,7 @@ public:
             {
                 rec.mtl=0;//todo
             }
-            if(!flag)
-                cout<<"aa"<<endl;
+
             return flag;
         }
     }
