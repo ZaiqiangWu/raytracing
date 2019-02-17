@@ -9,6 +9,8 @@
 #include "aabb.h"
 #include "triangle.h"
 #include "string"
+#include <iostream>
+using namespace std;
 template <typename scalar_t>
 class TriangleNode
 {
@@ -25,12 +27,27 @@ class TriangleList
 {
     TriangleNode<scalar_t> *head;
     TriangleNode<scalar_t> *end;
+    TriangleNode<scalar_t> *iter;
     int size;
     TriangleList()
     {
         head=NULL;
         end=NULL;
         size=0;
+        iter=NULL;
+    }
+    TriangleNode<scalar_t>* iteration()
+    {
+        TriangleNode<scalar_t>* temp=iter;
+        if(iter)
+        {
+            iter=iter->NextNode;
+        }
+        return temp;
+    }
+    void resetIteration()
+    {
+        iter=head;
     }
     void append(Triangle<scalar_t> *tri)
     {
@@ -40,6 +57,7 @@ class TriangleList
             head->triangle=tri;
             end=head;
             size++;
+            iter=head;
         }
         else
         {
@@ -74,19 +92,46 @@ class OctreeNode
 {
 public:
     string mortonCode;
-    Triangle<scalar_t> *triangles;
+    TriangleList<scalar_t> triangle_list;
     bool isleaf;
+    int current_depth;
     int num_triangles;
     AABB<scalar_t> aabb;
     OctreeNode<scalar_t> *children[8];
     OctreeNode()
     {
-        triangles=NULL;
         isleaf=true;
+        current_depth=0;
         num_triangles=0;
         for(int i=0;i<8;i++)
         {
             children[i]=NULL;
+        }
+    }
+    bool ishit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)
+    {
+        if(!isleaf)
+        {
+            return false;
+        }
+        else
+        {
+            triangle_list.resetIteration();
+            IntersectionResult<scalar_t> res_tmp;
+            scalar_t min_t=10000;
+            bool flag=false;
+            for(int i=0;i<triangle_list.size;i++)
+            {
+                if(triangle_list.iteration()->triangle->ishit(e,d,t0,t1,res_tmp))
+                {
+                    flag=true;
+                    if(res_tmp.t<min_t)
+                    {
+                        rec=res_tmp;
+                    }
+                }
+            }
+            return flag;
         }
     }
 };
@@ -100,20 +145,71 @@ public:
     Octree()
     {
         max_depth=8;
+        max_faces=32;
         root.mortonCode=string(max_depth,'F');
+    }
+    ~Octree()
+    {
+        ;//todo
+    }
+    void generate(Triangle<scalar_t> *tris,int num_tris)
+    {
+        for(int i=0;i<num_tris;i++)
+        {
+            root.triangle_list.append(&tris[i]);
+        }
+        divide(root);
+        cout<<"Finish generating octree!"<<endl;
+
     }
     void divide(OctreeNode<scalar_t> node)
     {
+        if(node.current_depth>=max_depth||node.num_triangles<=max_faces)
+            return;
+        node.isleaf= false;
         OctreeNode<scalar_t> *node_p=new OctreeNode<scalar_t>[8];
+
         for(int i=0;i<8;i++)
         {
             node.children[i]=&node_p[i];
-            node.children[i]->aabb=subAABB(node.aabb,i);//todo
+            node.children[i]->aabb=subAABB(node.aabb,(unsigned int)i);//todo
+            node.children[i]->current_depth=node.current_depth+1;
+            node.children[i]->mortonCode=node.mortonCode[node.current_depth]='0'+(char)i;
         }
-        if(node.num_triangles>max_faces)
+        node.triangle_list.resetIteration();
+        Triangle<scalar_t> *test_tri_p=NULL;
+        for(int i=0;i<node.triangle_list.size;i++)
         {
-            ;
+            test_tri_p=node.triangle_list.iteration()->triangle;
+            for(int j=0;j<8;j++)
+            {
+                if(is_tri_in_aabb(test_tri_p,node.children[j]->aabb))
+                {
+                    node.children[j]->triangle_list.append(test_tri_p);
+                }
+            }
+
         }
+        node.triangle_list.~TriangleList();//info moved to leaf nodes,free memory
+        for(int i=0;i<8;i++)
+        {
+            divide(node.children[i]);
+        }
+
+    }
+    bool is_tri_in_aabb(Triangle<scalar_t> *tri,AABB<scalar_t> aabb_test)
+    {
+        bool isin0=is_in_aabb(tri->p0,aabb_test);
+        bool isin1=is_in_aabb(tri->p1,aabb_test);
+        bool isin2=is_in_aabb(tri->p2,aabb_test);
+        bool isin=false;
+        if(isin0)
+            isin=true;
+        if(isin1)
+            isin=true;
+        if(isin2)
+            isin=true;
+        return isin;
     }
     string coor2code(vector3<scalar_t> coordinate)
     {
@@ -151,6 +247,20 @@ public:
                 break;
         }
         return aabb_res;
+    }
+    OctreeNode<scalar_t>* code2node(string code)
+    {
+        OctreeNode<scalar_t>* pointer=&root;
+        for(int i=0;i<code.length();i++)
+        {
+            if(code[i]!='F')
+            {
+                pointer=pointer->children[code[i]-'0'];
+            }
+            else
+                break;
+        }
+        return pointer;
     }
 
     AABB<scalar_t> subAABB(AABB<scalar_t> aabb, unsigned int code)
@@ -207,6 +317,31 @@ public:
         if(coordinate.z<aabb.z_min||coordinate.z>aabb.z_max)
         {
             flag= false;
+        }
+        return flag;
+    }
+    bool ishit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)
+    {
+        vector3<scalar_t> inpoint,outpoint;
+        string code;
+        bool flag=false;
+
+        if(root.aabb.ishit(e,d,inpoint,outpoint))
+        {
+            code=coor2code(inpoint+eps_t*d);
+            while(!flag&&code!=string(max_depth,'F'))
+            {
+                if(code2node(code)->ishit(e,d,t0,t1,rec))
+                {
+                    flag=true;
+                }
+                else
+                {
+                    code=coor2code(outpoint+eps_t*d);
+                    code2aabb(code).ishit(e,d,inpoint,outpoint);
+                }
+            }
+
         }
         return flag;
     }

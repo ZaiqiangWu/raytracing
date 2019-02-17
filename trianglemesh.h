@@ -13,6 +13,7 @@
 #include <math.h>
 #include <string>
 #include "aabb.h"
+#include "octree.h"
 using namespace std;
 template <typename scalar_t>
 class TriangleMesh:public surface<scalar_t>
@@ -23,6 +24,7 @@ public:
     AABB<scalar_t> aabb;
     vector3<scalar_t> *vertices;
     vector3<scalar_t> central;
+    Octree<scalar_t> octree;
     int *faces;
     Triangle<scalar_t> *triangles;
     TriangleMesh()
@@ -243,6 +245,7 @@ public:
                 aabb.z_max=vertices[k].z;
             }
         }
+        octree.generate(triangles,num_faces);
     }
     bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)
     {
@@ -257,7 +260,7 @@ public:
         }
         else
         {
-            scalar_t t_min=1000;
+            /*scalar_t t_min=1000;
             IntersectionResult<scalar_t> result_temp;
             bool is_hit;
             for(int i=0;i<this->num_faces;i++)
@@ -273,7 +276,8 @@ public:
                     }
                 }
 
-            }
+            }*/
+            flag=octree.ishit(e,d,t0,t1,rec);
             if(flag)
             {
                 rec.mtl=0;//todo

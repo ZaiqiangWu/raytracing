@@ -78,5 +78,57 @@ public:
             return true;
         }
     }
+    bool ishit(vector3<scalar_t> e,vector3<scalar_t> d,vector3<scalar_t> &inPoint,vector3<scalar_t> outPoint)
+    {
+        scalar_t txmax,txmin,tymax,tymin,tzmax,tzmin;
+        scalar_t den;
+        if(fabs(d.x)<eps_t)
+        {
+            den=d.x>0?eps_t:-eps_t;
+        }
+        else
+        {
+            den=d.x;
+        }
+        txmax=MAX((x_min-e.x)/den,(x_max-e.x)/den);
+        txmin=MIN((x_min-e.x)/den,(x_max-e.x)/den);
+        if(fabs(d.y)<eps_t)
+        {
+            den=d.y>0?eps_t:-eps_t;
+        }
+        else
+        {
+            den=d.y;
+        }
+        tymax=MAX((y_min-e.y)/den,(y_max-e.y)/den);
+        tymin=MIN((y_min-e.y)/den,(y_max-e.y)/den);
+        if(fabs(d.z)<eps_t)
+        {
+            den=d.z>0?eps_t:-eps_t;
+        }
+        else
+        {
+            den=d.z;
+        }
+        tzmax=MAX((z_min-e.z)/den,(z_max-e.z)/den);
+        tzmin=MIN((z_min-e.z)/den,(z_max-e.z)/den);
+        if(MAX(txmin,MAX(tymin,tzmin))>MIN(txmax,MIN(tymax,tzmax)))
+        {
+            //cout<<0<<endl;
+            return false;
+        }
+        else if(MIN(txmax,MIN(tymax,tzmax))<0)
+        {
+            //cout<<1<<endl;
+            return false;
+        }
+        else
+        {
+            //cout<<2<<endl;
+            inPoint=MAX(txmin,MAX(tymin,tzmin))*d+e;
+            outPoint=MIN(txmax,MIN(tymax,tzmax))*d+e;
+            return true;
+        }
+    }
 };
 #endif //DISPLAYIMAGE_AABB_H
