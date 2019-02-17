@@ -50,6 +50,7 @@ public:
         aabb.y_max=(aabb.y_max-central.y)*scale+central.y;
         aabb.z_min=(aabb.z_min-central.z)*scale+central.z;
         aabb.z_max=(aabb.z_max-central.z)*scale+central.z;
+        recompute_octree();
     }
     void Translate(vector3<scalar_t> t)
     {
@@ -64,6 +65,7 @@ public:
         aabb.y_max+=t.y;
         aabb.z_min+=t.z;
         aabb.z_max+=t.z;
+        recompute_octree();
     }
     void LoadPly(char *file_name)
     {
@@ -218,6 +220,10 @@ public:
         {
             triangles[k].set_vertices(&vertices[faces[k*3+0]],&vertices[faces[k*3+1]],&vertices[faces[k*3+2]]);
         }
+        recompute_octree();
+    }
+    void recompute_aabb()
+    {
         for(int k=0;k<this->num_vetices;k++)
         {
             if(vertices[k].x<aabb.x_min)
@@ -245,6 +251,10 @@ public:
                 aabb.z_max=vertices[k].z;
             }
         }
+    }
+    void recompute_octree()
+    {
+        recompute_aabb();
         octree.generate(triangles,num_faces,aabb);
     }
     bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)

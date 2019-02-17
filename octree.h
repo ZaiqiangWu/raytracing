@@ -73,6 +73,10 @@ public:
     {
         free_mem(head);
     }
+    void cleardata()
+    {
+        free_mem(head);
+    }
     void free_mem(TriangleNode<scalar_t> *node_p)
     {
         if(node_p)
@@ -139,28 +143,41 @@ template <typename scalar_t>
 class Octree
 {
 public:
-    OctreeNode<scalar_t> root;
+    OctreeNode<scalar_t>* root;
     unsigned int max_depth;
     int max_faces;
     Octree()
     {
         max_depth=8;
         max_faces=32;
-        root.mortonCode=string(max_depth,'F');
+        root=NULL;
+        //
     }
     ~Octree()
     {
-        ;//todo
+        free_mem(root);
+    }
+    void free_mem(OctreeNode<scalar_t>* node)
+    {
+        if(node)
+        {
+            for(int i=0;i<8;i++)
+            {
+                free_mem(node->children[i]);
+            }
+        }
     }
     void generate(Triangle<scalar_t> *tris,int num_tris,AABB<scalar_t> aabb1)
     {
-        root.aabb=aabb1;//
+        root=new OctreeNode<scalar_t>;
+        root->mortonCode=string(max_depth,'F');
+        root->aabb=aabb1;//
         for(int i=0;i<num_tris;i++)
         {
-            root.triangle_list.append(&tris[i]);
+            root->triangle_list.append(&tris[i]);
         }
         //cout<<"root triangle num:"<<root.triangle_list.size<<endl;
-        divide(&root);
+        divide(root);
         cout<<"Finish generating octree!"<<endl;
 
     }
@@ -200,6 +217,7 @@ public:
 
         }
         //delete &(node->triangle_list);//info moved to leaf nodes,free memory todo
+        node->triangle_list.cleardata();
         for(int i=0;i<8;i++)
         {
             divide(node->children[i]);
@@ -223,11 +241,11 @@ public:
     string coor2code(vector3<scalar_t> coordinate)
     {
         string code;
-        if(!is_in_aabb(coordinate,root.aabb))
+        if(!is_in_aabb(coordinate,root->aabb))
             return string(max_depth,'F');
         else
         {
-            AABB<scalar_t> aabb_test=root.aabb;
+            AABB<scalar_t> aabb_test=root->aabb;
             while(code.length()<max_depth)
             {
                 for(unsigned char i=0;i<8;i++)
@@ -245,7 +263,7 @@ public:
     }
     AABB<scalar_t> code2aabb(string code)
     {
-        AABB<scalar_t> aabb_res=root.aabb;
+        AABB<scalar_t> aabb_res=root->aabb;
         for(unsigned char i=0;i<max_depth;i++)
         {
             if(code[i]!='F')
@@ -259,7 +277,7 @@ public:
     }
     OctreeNode<scalar_t>* code2node(string code)
     {
-        OctreeNode<scalar_t>* pointer=&root;
+        OctreeNode<scalar_t>* pointer=root;
         for(int i=0;i<code.length();i++)
         {
             if(code[i]!='F')
@@ -335,7 +353,7 @@ public:
         string code;
         bool flag=false;
 
-        if(root.aabb.ishit(e,d,inpoint,outpoint))
+        if(root->aabb.ishit(e,d,inpoint,outpoint))
         {
             code=coor2code(inpoint+(scalar_t)eps_t*d);
             while(!flag&&code!=string(max_depth,'F'))
