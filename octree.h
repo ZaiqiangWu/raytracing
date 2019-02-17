@@ -97,14 +97,12 @@ public:
     TriangleList<scalar_t> triangle_list;
     bool isleaf;
     int current_depth;
-    int num_triangles;
     AABB<scalar_t> aabb;
     OctreeNode<scalar_t> *children[8];
     OctreeNode()
     {
         isleaf=true;
         current_depth=0;
-        num_triangles=0;
         for(int i=0;i<8;i++)
         {
             children[i]=NULL;
@@ -112,7 +110,7 @@ public:
     }
     bool ishit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)
     {
-        if(!isleaf)
+        if(!isleaf||triangle_list.size==0)
         {
             return false;
         }
@@ -154,20 +152,25 @@ public:
     {
         ;//todo
     }
-    void generate(Triangle<scalar_t> *tris,int num_tris)
+    void generate(Triangle<scalar_t> *tris,int num_tris,AABB<scalar_t> aabb1)
     {
+        root.aabb=aabb1;//
         for(int i=0;i<num_tris;i++)
         {
             root.triangle_list.append(&tris[i]);
         }
+        //cout<<"root triangle num:"<<root.triangle_list.size<<endl;
         divide(&root);
         cout<<"Finish generating octree!"<<endl;
 
     }
     void divide(OctreeNode<scalar_t> *node)
     {
-        if(node->current_depth>=max_depth||node->num_triangles<=max_faces)
+        if(node->current_depth>=max_depth||node->triangle_list.size<=max_faces)
+        {
+            cout<<"current depth:"<<node->current_depth<<" num tris:"<<node->triangle_list.size<<" "<<node->mortonCode<<endl;
             return;
+        }
         node->isleaf= false;
         OctreeNode<scalar_t> *node_p=new OctreeNode<scalar_t>[8];
 
@@ -176,7 +179,9 @@ public:
             node->children[i]=&node_p[i];
             node->children[i]->aabb=subAABB(node->aabb,(unsigned int)i);//todo
             node->children[i]->current_depth=node->current_depth+1;
-            node->children[i]->mortonCode=node->mortonCode[node->current_depth]='0'+(char)i;
+            node->children[i]->mortonCode=node->mortonCode;
+            node->children[i]->mortonCode[node->current_depth]='0'+(char)i;
+
         }
         node->triangle_list.resetIteration();
         Triangle<scalar_t> *test_tri_p=NULL;
@@ -187,12 +192,14 @@ public:
             {
                 if(is_tri_in_aabb(test_tri_p,node->children[j]->aabb))
                 {
+                    //cout<<"tri in aabb"<<endl;
                     node->children[j]->triangle_list.append(test_tri_p);
                 }
+
             }
 
         }
-        delete &(node->triangle_list);//info moved to leaf nodes,free memory
+        //delete &(node->triangle_list);//info moved to leaf nodes,free memory todo
         for(int i=0;i<8;i++)
         {
             divide(node->children[i]);
@@ -345,6 +352,12 @@ public:
             }
 
         }
+        if(!flag)
+        {
+            cout<<"not hit octree"<<endl;
+        }
+        else
+            cout<<"hit octree"<<endl;
         return flag;
     }
 };

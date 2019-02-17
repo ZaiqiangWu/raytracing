@@ -245,7 +245,7 @@ public:
                 aabb.z_max=vertices[k].z;
             }
         }
-        octree.generate(triangles,num_faces);
+        octree.generate(triangles,num_faces,aabb);
     }
     bool hit(vector3<scalar_t> e,vector3<scalar_t> d,scalar_t t0,scalar_t t1,IntersectionResult<scalar_t>& rec)
     {
