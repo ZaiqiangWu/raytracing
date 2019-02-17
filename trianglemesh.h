@@ -110,7 +110,7 @@ public:
                     getline ( fin, str, '\n' );
                     face = atoi(str.c_str());
                 }
-                else if((str == "float32"||str == "float64")&&start_count)
+                else if((str == "float32"||str == "float64"||str=="float")&&start_count)
                 {
                     str.clear ( );
                     num_property++;

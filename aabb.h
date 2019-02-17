@@ -78,7 +78,7 @@ public:
             return true;
         }
     }
-    bool ishit(vector3<scalar_t> e,vector3<scalar_t> d,vector3<scalar_t> &inPoint,vector3<scalar_t> outPoint)
+    bool ishit(vector3<scalar_t> e,vector3<scalar_t> d,vector3<scalar_t> &inPoint,vector3<scalar_t> &outPoint)
     {
         scalar_t txmax,txmin,tymax,tymin,tzmax,tzmin;
         scalar_t den;
@@ -125,7 +125,7 @@ public:
         else
         {
             //cout<<2<<endl;
-            inPoint=MAX(txmin,MAX(tymin,tzmin))*d+e;
+            inPoint=MAX(0,MAX(txmin,MAX(tymin,tzmin)))*d+e;
             outPoint=MIN(txmax,MIN(tymax,tzmax))*d+e;
             return true;
         }

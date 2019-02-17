@@ -148,7 +148,7 @@ public:
     int max_faces;
     Octree()
     {
-        max_depth=8;
+        max_depth=5;
         max_faces=32;
         root=NULL;
         //
@@ -185,7 +185,7 @@ public:
     {
         if(node->current_depth>=max_depth||node->triangle_list.size<=max_faces)
         {
-            cout<<"current depth:"<<node->current_depth<<" num tris:"<<node->triangle_list.size<<" "<<node->mortonCode<<endl;
+            //cout<<"current depth:"<<node->current_depth<<" num tris:"<<node->triangle_list.size<<" "<<node->mortonCode<<endl;
             return;
         }
         node->isleaf= false;
@@ -278,9 +278,13 @@ public:
     OctreeNode<scalar_t>* code2node(string code)
     {
         OctreeNode<scalar_t>* pointer=root;
+        if(!pointer)
+        {
+            return pointer;
+        }
         for(int i=0;i<code.length();i++)
         {
-            if(code[i]!='F')
+            if(code[i]!='F'&&!pointer->isleaf)
             {
                 pointer=pointer->children[code[i]-'0'];
             }
@@ -355,7 +359,8 @@ public:
 
         if(root->aabb.ishit(e,d,inpoint,outpoint))
         {
-            code=coor2code(inpoint+(scalar_t)eps_t*d);
+            code=coor2code(inpoint+(scalar_t)0.00001*d);
+            code2aabb(code).ishit(e,d,inpoint,outpoint);
             while(!flag&&code!=string(max_depth,'F'))
             {
                 if(code2node(code)->ishit(e,d,t0,t1,rec))
@@ -364,18 +369,18 @@ public:
                 }
                 else
                 {
-                    code=coor2code(outpoint+(scalar_t)eps_t*d);
+                    code=coor2code(outpoint+(scalar_t)0.00001*d);
                     code2aabb(code).ishit(e,d,inpoint,outpoint);
                 }
             }
 
         }
-        if(!flag)
+        /*if(!flag)
         {
             cout<<"not hit octree"<<endl;
         }
         else
-            cout<<"hit octree"<<endl;
+            cout<<"hit octree"<<endl;*/
         return flag;
     }
 };

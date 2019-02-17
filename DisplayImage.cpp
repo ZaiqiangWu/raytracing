@@ -11,17 +11,17 @@ using namespace std;
 
 int main(int argc, char** argv )
 {
-    int size=4;
+    int size=400;
     Scence<float> scence(size);
     sphere<float> sp0(vector3<float>(0.0f,0.6f,0.0),0.3,0);
     checkerboard<float> rec0(2,2);
     TriangleMesh<float> mesh;
     mesh.LoadPly("../cgmodels/bunny.ply");
     mesh.Scale(8);
-    mesh.Translate(vector3<float>(0,-0.4,0));
-    rec0.translate(0,0,-0.9);
+    mesh.Translate(vector3<float>(0.15,-0.8,0.6));
+    rec0.translate(0.0,0,-0.9);
     rec0.rotationX(-1.2f);
-    scence.objs.append(&sp0);
+    //scence.objs.append(&sp0);
     //scence.objs.append(&rec0);
     cout<<mesh.num_vetices<<" "<<mesh.num_faces<<endl;
     scence.objs.append(&mesh);
