@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char** argv )
 {
-    int size=400;
+    int size=100;
     Scence<float> scence(size);
     sphere<float> sp0(vector3<float>(0.0f,0.6f,0.0),0.3,0);
     checkerboard<float> rec0(2,2);

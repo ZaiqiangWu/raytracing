@@ -14,6 +14,7 @@ using namespace std;
 template <typename scalar_t>
 class TriangleNode
 {
+public:
     Triangle<scalar_t> *triangle;
     TriangleNode<scalar_t> *NextNode;
     TriangleNode()
@@ -25,6 +26,7 @@ class TriangleNode
 template <typename scalar_t>
 class TriangleList
 {
+public:
     TriangleNode<scalar_t> *head;
     TriangleNode<scalar_t> *end;
     TriangleNode<scalar_t> *iter;
@@ -158,50 +160,50 @@ public:
         {
             root.triangle_list.append(&tris[i]);
         }
-        divide(root);
+        divide(&root);
         cout<<"Finish generating octree!"<<endl;
 
     }
-    void divide(OctreeNode<scalar_t> node)
+    void divide(OctreeNode<scalar_t> *node)
     {
-        if(node.current_depth>=max_depth||node.num_triangles<=max_faces)
+        if(node->current_depth>=max_depth||node->num_triangles<=max_faces)
             return;
-        node.isleaf= false;
+        node->isleaf= false;
         OctreeNode<scalar_t> *node_p=new OctreeNode<scalar_t>[8];
 
         for(int i=0;i<8;i++)
         {
-            node.children[i]=&node_p[i];
-            node.children[i]->aabb=subAABB(node.aabb,(unsigned int)i);//todo
-            node.children[i]->current_depth=node.current_depth+1;
-            node.children[i]->mortonCode=node.mortonCode[node.current_depth]='0'+(char)i;
+            node->children[i]=&node_p[i];
+            node->children[i]->aabb=subAABB(node->aabb,(unsigned int)i);//todo
+            node->children[i]->current_depth=node->current_depth+1;
+            node->children[i]->mortonCode=node->mortonCode[node->current_depth]='0'+(char)i;
         }
-        node.triangle_list.resetIteration();
+        node->triangle_list.resetIteration();
         Triangle<scalar_t> *test_tri_p=NULL;
-        for(int i=0;i<node.triangle_list.size;i++)
+        for(int i=0;i<node->triangle_list.size;i++)
         {
-            test_tri_p=node.triangle_list.iteration()->triangle;
+            test_tri_p=node->triangle_list.iteration()->triangle;
             for(int j=0;j<8;j++)
             {
-                if(is_tri_in_aabb(test_tri_p,node.children[j]->aabb))
+                if(is_tri_in_aabb(test_tri_p,node->children[j]->aabb))
                 {
-                    node.children[j]->triangle_list.append(test_tri_p);
+                    node->children[j]->triangle_list.append(test_tri_p);
                 }
             }
 
         }
-        node.triangle_list.~TriangleList();//info moved to leaf nodes,free memory
+        delete &(node->triangle_list);//info moved to leaf nodes,free memory
         for(int i=0;i<8;i++)
         {
-            divide(node.children[i]);
+            divide(node->children[i]);
         }
 
     }
     bool is_tri_in_aabb(Triangle<scalar_t> *tri,AABB<scalar_t> aabb_test)
     {
-        bool isin0=is_in_aabb(tri->p0,aabb_test);
-        bool isin1=is_in_aabb(tri->p1,aabb_test);
-        bool isin2=is_in_aabb(tri->p2,aabb_test);
+        bool isin0=is_in_aabb(*tri->p0,aabb_test);
+        bool isin1=is_in_aabb(*tri->p1,aabb_test);
+        bool isin2=is_in_aabb(*tri->p2,aabb_test);
         bool isin=false;
         if(isin0)
             isin=true;
@@ -328,7 +330,7 @@ public:
 
         if(root.aabb.ishit(e,d,inpoint,outpoint))
         {
-            code=coor2code(inpoint+eps_t*d);
+            code=coor2code(inpoint+(scalar_t)eps_t*d);
             while(!flag&&code!=string(max_depth,'F'))
             {
                 if(code2node(code)->ishit(e,d,t0,t1,rec))
@@ -337,7 +339,7 @@ public:
                 }
                 else
                 {
-                    code=coor2code(outpoint+eps_t*d);
+                    code=coor2code(outpoint+(scalar_t)eps_t*d);
                     code2aabb(code).ishit(e,d,inpoint,outpoint);
                 }
             }
