@@ -7,6 +7,7 @@
 
 #include "vector3.h"
 #include "raytracing.h"
+#include "aabb.h"
 #include <iostream>
 using namespace std;
 template <typename scalar_t>
@@ -71,6 +72,17 @@ public:
         //cout<<"hit"<<endl;
 
         return flag;
+    }
+    AABB<scalar_t> aabb()
+    {
+        AABB<scalar_t> aabb1;
+        aabb1.x_min=MIN(p0->x,MIN(p1->x,p2->x));
+        aabb1.x_max=MAX(p0->x,MAX(p1->x,p2->x));
+        aabb1.y_min=MIN(p0->y,MIN(p1->y,p2->y));
+        aabb1.y_max=MAX(p0->y,MAX(p1->y,p2->y));
+        aabb1.z_min=MIN(p0->z,MIN(p1->z,p2->z));
+        aabb1.z_max=MAX(p0->z,MAX(p1->z,p2->z));
+        return aabb1;
     }
 };
 #endif //DISPLAYIMAGE_TRIANGLE_H

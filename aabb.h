@@ -130,5 +130,16 @@ public:
             return true;
         }
     }
+    bool IsIntersect(const AABB<scalar_t> aabb1)
+    {
+        bool flag=true;
+        if(x_min>aabb1.x_max||x_max<aabb1.x_min)
+            flag= false;
+        if(y_min>aabb1.y_max||y_max<aabb1.y_min)
+            flag= false;
+        if(z_min>aabb1.z_max||z_max<aabb1.z_min)
+            flag= false;
+        return flag;
+    }
 };
 #endif //DISPLAYIMAGE_AABB_H

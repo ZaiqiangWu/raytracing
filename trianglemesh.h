@@ -67,7 +67,7 @@ public:
         aabb.z_max+=t.z;
         recompute_octree();
     }
-    void LoadPly(char *file_name)
+    void LoadPly(char *file_name,bool reverse=false)
     {
         ifstream fin ( file_name, ios_base::in );//開檔
 
@@ -204,9 +204,19 @@ public:
                 if(counter == face)		break;
                 if(ch == '\n')
                 {
-                    faces[counter*3+0]=point[1];
-                    faces[counter*3+1]=point[2];
-                    faces[counter*3+2]=point[3];
+                    if(!reverse)
+                    {
+                        faces[counter*3+0]=point[1];
+                        faces[counter*3+1]=point[2];
+                        faces[counter*3+2]=point[3];
+                    }
+                    else
+                    {
+                        faces[counter*3+1]=point[1];
+                        faces[counter*3+0]=point[2];
+                        faces[counter*3+2]=point[3];
+                    }
+
                     counter++;
                 }
                 else if(str == "")	continue;

@@ -10,6 +10,7 @@
 #include "triangle.h"
 #include "string"
 #include <iostream>
+#include <cmath>
 using namespace std;
 template <typename scalar_t>
 class TriangleNode
@@ -149,7 +150,7 @@ public:
     int max_faces;
     Octree()
     {
-        max_depth=5;
+        max_depth=8;
         max_faces=32;
         root=NULL;
         //
@@ -208,7 +209,8 @@ public:
             test_tri_p=node->triangle_list.iteration()->triangle;
             for(int j=0;j<8;j++)
             {
-                if(is_tri_in_aabb(test_tri_p,node->children[j]->aabb))
+                //if(is_tri_in_aabb(test_tri_p,node->children[j]->aabb))
+                if(test_tri_p->aabb().IsIntersect(node->children[j]->aabb))
                 {
                     //cout<<"tri in aabb"<<endl;
                     node->children[j]->triangle_list.append(test_tri_p);
@@ -357,10 +359,13 @@ public:
         vector3<scalar_t> inpoint,outpoint;
         string code;
         bool flag=false;
+        scalar_t tiny_v=(root->aabb.x_max-root->aabb.x_min)+(root->aabb.y_max-root->aabb.y_min)+(root->aabb.z_max-root->aabb.z_min);
+        tiny_v/=3;
+        tiny_v/=pow((scalar_t)2,(scalar_t)max_depth)*10.0f;
 
         if(root->aabb.ishit(e,d,inpoint,outpoint))
         {
-            code=coor2code(inpoint+(scalar_t)0.00001*d);
+            code=coor2code(inpoint+tiny_v*d);
             code2aabb(code).ishit(e,d,inpoint,outpoint);
             while(!flag&&code!=string(max_depth,'F'))
             {
@@ -370,7 +375,7 @@ public:
                 }
                 else
                 {
-                    code=coor2code(outpoint+(scalar_t)0.00001*d);
+                    code=coor2code(outpoint+tiny_v*d);
                     code2aabb(code).ishit(e,d,inpoint,outpoint);
                 }
             }
