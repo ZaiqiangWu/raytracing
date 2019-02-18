@@ -175,8 +175,12 @@ public:
                     this->vertices[counter].z=number;
                     str.clear ( );
                     //counter++;
+                    if(num_property==3)
+                    {
+                        counter++;
+                    }
                 }
-                else if(pos%num_property == 4)
+                else if(pos%num_property == num_property-1)
                 {
 
                     str.clear ( );
@@ -200,8 +204,8 @@ public:
                 if(counter == face)		break;
                 if(ch == '\n')
                 {
-                    faces[counter*3+1]=point[1];
-                    faces[counter*3+0]=point[2];
+                    faces[counter*3+0]=point[1];
+                    faces[counter*3+1]=point[2];
                     faces[counter*3+2]=point[3];
                     counter++;
                 }

@@ -71,23 +71,24 @@ public:
     }
     ~TriangleList()
     {
-        free_mem(head);
+        free_mem();
     }
     void cleardata()
     {
-        free_mem(head);
+        free_mem();
     }
-    void free_mem(TriangleNode<scalar_t> *node_p)
+    void free_mem()
     {
-        if(node_p)
+
+        TriangleNode<scalar_t> *temp_p;
+        if(head)
         {
-            if(node_p->NextNode)
+            temp_p=head;
+            while(temp_p)
             {
-                free_mem(node_p->NextNode);
-            }
-            else
-            {
-                delete node_p;
+                head=temp_p->NextNode;
+                delete temp_p;
+                temp_p=head;
             }
         }
     }
