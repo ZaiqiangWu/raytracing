@@ -361,7 +361,7 @@ public:
         bool flag=false;
         scalar_t tiny_v=(root->aabb.x_max-root->aabb.x_min)+(root->aabb.y_max-root->aabb.y_min)+(root->aabb.z_max-root->aabb.z_min);
         tiny_v/=3;
-        tiny_v/=pow((scalar_t)2,(scalar_t)max_depth)*10.0f;
+        tiny_v/=pow((scalar_t)2,(scalar_t)max_depth)*30.0f;
 
         if(root->aabb.ishit(e,d,inpoint,outpoint))
         {

@@ -19,6 +19,7 @@ int main(int argc, char** argv )
     mesh.LoadPly("../cgmodels/dragon.ply", false);
     //mesh.LoadPly("../cgmodels/bunny.ply", true);
     mesh.Scale(5);
+    //mesh.mtl=-1;
     mesh.Translate(vector3<float>(0.1,-0.5,0.4));
     rec0.translate(0.0,0,-0.2);
     rec0.rotationX(-1.2f);

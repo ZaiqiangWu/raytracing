@@ -304,7 +304,7 @@ public:
             flag=octree.ishit(e,d,t0,t1,rec);
             if(flag)
             {
-                rec.mtl=0;//todo
+                rec.mtl=this->mtl;//todo
             }
 
             return flag;
