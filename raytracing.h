@@ -604,40 +604,55 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
         if(1==result.mtl&&current_depth<max_depth)
         {
             reflection=(direction-2*direction.dot(result.normal)*result.normal).normalize();
-            color+=(scalar_t)0.95*IntersectColor(result.position,reflection,current_depth+1);//reflection direction
+            color+=(scalar_t)0.60*IntersectColor(result.position,reflection,current_depth+1);//reflection direction
+            color+=(scalar_t)0.30*HighLight(result.normal,light.direction,direction)*vector3<scalar_t>(1,1,1);
+            color+=(scalar_t)0.10*MAX(0,light.direction.normalize().dot(result.normal))*vector3<scalar_t>(1,1,1);
         }
         else if(-1==result.mtl&&current_depth<max_depth)
         {
-            refraction=(direction-2*direction.dot(result.normal)*result.normal).normalize();
+            scalar_t refraction_ratio=1.05;
+            scalar_t K_reflectioin,K_refraction;
+            reflection=(direction-2*direction.dot(result.normal)*result.normal).normalize();
             if(direction.dot(result.normal)<0)
             {
                 //from outside to inside
+                color+=(scalar_t)0.20*HighLight(result.normal,light.direction,direction)*vector3<scalar_t>(1,1,1);
 
                 vector3<scalar_t> vertical=direction.dot(result.normal.normalize())*result.normal.normalize();
                 vector3<scalar_t> horizontal=direction-vertical;
                 scalar_t theta1=asin(direction.normalize().cross(result.normal.normalize()).length());
-                scalar_t theta2=asin(sin(theta1)/1.02);
+                scalar_t theta2=asin(sin(theta1)/refraction_ratio);
                 refraction=horizontal+vertical*(tan(theta1)/tan(theta2));
                 //refraction=direction;
+                K_reflectioin=0.20;
+                K_refraction=0.80;
             }
             else
             {
-                if(direction.normalize().cross(result.normal.normalize()).length()>(1/1.02))
+                if(direction.normalize().cross(result.normal.normalize()).length()>(1/refraction_ratio))
                 {
-                    return vector3<scalar_t>(0,0,0);
+                    //return vector3<scalar_t>(0,0,0);
+                    K_reflectioin=0.95;
+                    K_refraction=-1;
                 }
                 else
                 {
                     vector3<scalar_t> vertical=direction.dot(result.normal.normalize())*result.normal.normalize();
                     vector3<scalar_t> horizontal=direction-vertical;
                     scalar_t theta1=asin(direction.normalize().cross(result.normal.normalize()).length());
-                    scalar_t theta2=asin(sin(theta1)*1.02);
+                    scalar_t theta2=asin(sin(theta1)*refraction_ratio);
                     refraction=horizontal+vertical*(tan(theta1)/tan(theta2));
                     //refraction=direction;
+                    K_reflectioin=0.20;
+                    K_refraction=0.80;
                 }
                 //refraction=(direction-2*direction.dot(result.normal)*result.normal).normalize();
             }
-            color+=(scalar_t)0.95*IntersectColor(result.position,refraction,current_depth+1);//reflection direction
+            if(K_refraction>0)
+                color+=K_refraction*IntersectColor(result.position,refraction,current_depth+1);//refraction direction
+            color+=K_reflectioin*IntersectColor(result.position,reflection,current_depth+1);
+
+
         }
         else
         {
@@ -653,7 +668,7 @@ vector3<scalar_t> Scence<scalar_t>::IntersectColor(vector3<scalar_t> origin, vec
             }
             else
                 //color+=vector3<scalar_t>(1,1,1)*(max(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*pow(max(0,((light.direction-2*light.direction.dot(result.normal)*result.normal).normalize().dot(direction))),8));
-                color+=vector3<scalar_t>(1,1,1)*(MAX(0.0,0.5*result.normal.dot(light.direction.normalize()))+0.2*HighLight(result.normal,light.direction,direction));
+                color+=vector3<scalar_t>(1,1,1)*(MAX(0.0,0.8*result.normal.dot(light.direction.normalize()))+0.2*HighLight(result.normal,light.direction,direction));
 
         }
     }
